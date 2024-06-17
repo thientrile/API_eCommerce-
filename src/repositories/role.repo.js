@@ -45,53 +45,55 @@ const getAllGrants = async () => {
   ]);
 };
 const getGrants = async (limit, offset, search) => {
+  // Flexible search logic: Match search string to role OR resource OR action
+  const matchStage = search 
+    ? {
+        $or: [
+          { role: { $regex: search, $options: "i" } }, // Case-insensitive search
+          { resource: { $regex: search, $options: "i" } },
+          { action: { $regex: search, $options: "i" } }
+        ],
+      }
+    : {}; // If no search term, match all documents
+
   return roleModel.aggregate([
+    { $unwind: "$rol_grants" }, // Unwind to work with individual grants
     {
-      $unwind: "$rol_grants",
-    },
-    {
-      $lookup: {
+      $lookup: { // Join with resources
         from: "Resources",
         localField: "rol_grants.resourceId",
         foreignField: "_id",
         as: "resource",
       },
     },
-    {
-      $unwind: "$resource",
-    },
-    {
+    { $unwind: "$resource" }, // Unwind resources for projection
+    { // Project the desired fields
       $project: {
         role: "$rol_name",
         resource: "$resource.src_name",
         action: "$rol_grants.actions",
         attributes: "$rol_grants.attributes",
-        _id: 0,
+        _id: 0, // Exclude _id
       },
     },
-    {
-      $unwind: "$action",
-    },
-    {
+    { $unwind: "$action" }, // Unwind actions for filtering
+    { // Re-project after unwinding
       $project: {
         role: 1,
         resource: 1,
-        action: "$action",
+        action: 1,
         attributes: 1,
-        _id: 0,
       },
     },
-    {
-      $match: {
-        $or: [{ role: { $regex: search, $options: "i" } }],
-      },
-    },
-    { $sort: { createdAt: -1 } }, // Sort by creation date, newest first
-    { $skip: parseInt(offset) },
-    { $limit: parseInt(limit) },
+    { $match: matchStage }, // Apply filtering
+    { $sort: { createdAt: -1 } },
+    { $skip: parseInt(offset) || 0 }, // Default to 0 if not provided
+    { $limit: parseInt(limit) || 10 }, // Default to 10 if not provided
   ]);
 };
+
 module.exports = {
   getId,
-  getAllGrants,getGrants
+  getAllGrants,
+  getGrants,
 };

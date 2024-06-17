@@ -33,7 +33,7 @@ const handlerRefreshToken = async (keyStore, user, refreshToken) => {
 
   if (!key || key.tk_refreshTokensUsed.includes(refreshToken)) {
     await deleteById(keyStore._id);
-    throw new AuthFailureError("Error: Refresh Token has expired");
+    throw new AuthFailureError(" Refresh Token has expired");
   }
   const tokens = await createTokenPair(
     { _id: user._id, slug: user.slug, role: user.role },
@@ -67,11 +67,11 @@ const handlerRefreshToken = async (keyStore, user, refreshToken) => {
 const login = async ({ username, password }) => {
   const foundUser = await userFindByusername(username);
   if (!foundUser) {
-    throw new AuthFailureError("Error: User is not signin");
+    throw new AuthFailureError(" User is not signin");
   }
   const comparePassword = await bcrypt.compare(password, foundUser.usr_salt);
   if (!comparePassword) {
-    throw new AuthFailureError("Error: Password is not correct");
+    throw new AuthFailureError(" Password is not correct");
   }
   //create public key and private key
   const user = foundUser;
@@ -113,7 +113,7 @@ const login = async ({ username, password }) => {
     }))
     .catch((err) => {
       userDeleteById(user._id);
-      throw new AuthFailureError("Error: Unable to login account");
+      throw new AuthFailureError(" Unable to login account");
     });
 };
 // Sign Up user
@@ -158,7 +158,7 @@ const signUP = async ({ name, sex, date, username, password, role }) => {
       getErrorMessageMongose(
         err,
         userModel,
-        "Error: Username or email or phone number already exists"
+        " Username or email or phone number already exists"
       )
     );
   });
@@ -196,7 +196,7 @@ const signUP = async ({ name, sex, date, username, password, role }) => {
     }))
     .catch((err) => {
       userDeleteById(user._id);
-      throw new AuthFailureError("Error: Unable to create account");
+      throw new AuthFailureError(" Unable to create account");
     });
 };
 // logout
@@ -205,7 +205,7 @@ const logout = async (keyStore) => {
   return await deleteByClientId(keyStore.tk_clientId)
     .then(() => 1)
     .catch(() => {
-      throw new AuthFailureError("Error: Unable to logout account");
+      throw new AuthFailureError(" Unable to logout account");
     });
 };
 module.exports = { signUP, login, handlerRefreshToken, logout };

@@ -12,7 +12,7 @@ const {
 } = require("../utils");
 const { BadRequestError } = require("../core/error.response");
 const { grantAccess } = require("../middlewares/rbac.middleware");
-const { getGrants } = require("../repositories/role.repo");
+const { getGrants, getAllGrants } = require("../repositories/role.repo");
 /**
  * create resource by admin
  * @param {string} name
@@ -120,17 +120,18 @@ const createRole = async (payload) => {
     throw new BadRequestError("Role already exists");
   }
 };
-const addGrantsToRole = async ({ userId, roleId, grants }) => {
-  await grantAccess(userId, "updateAny", "role"); 
+const addGrantsToRole = async ({ userId, arr }) => {
+  await grantAccess(userId, "updateAny", "role");
   try {
-    const role = await roleModel.findOneAndUpdate(
-      { _id: convertToObjectIdMongoose(roleId) },
-      { $push: { rol_grants: grants } },
-      { new: true }
-    );
-    return role;
+    arr.forEach(async (e) => {
+      await roleModel.findOneAndUpdate(
+        { _id: convertToObjectIdMongoose(e.roleId) },
+        { $push: { rol_grants: e.grants } }
+      );
+      return getAllGrants();
+    });
   } catch (err) {
-    throw new BadRequestError("Role already exists");
+    throw new BadRequestError("Role not exists");
   }
 };
 const roleList = async ({

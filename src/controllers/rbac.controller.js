@@ -73,10 +73,17 @@ const listResource = async (req, res, next) => {
     }),
   }).send(res);
 };
+/**
+ * Add grant to role.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @param {Function} next - The next middleware function.
+ * @returns {Promise<void>} - A promise that resolves when the grant is added to the role.
+ */
 const addGrant = async (req, res, next) => {
   new SuccessReponse({
     message: "Add grant to role successfully",
-    metadata: await addGrantsToRole({ userId: req.user._id, ...req.body }),
+    metadata: await addGrantsToRole({ userId: req.user._id, arr:req.body }),
   }).send(res);
 };
 module.exports = {

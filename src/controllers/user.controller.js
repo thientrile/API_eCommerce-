@@ -32,7 +32,7 @@ const refretshToken = async (req, res, next) => {
   }).send(res);
 };
 const logOut = async (req, res, next) => {
-console.log(req.keyStore);
+
   new SuccessReponse({
     message: "User log out successfully",
     metadata: await logout(req.keyStore),

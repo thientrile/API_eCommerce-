@@ -4,6 +4,7 @@
 
 const { model, Schema } = require("mongoose");
 const counterModel = require("./counter.model");
+const { randomId } = require("../utils");
 const DOCUMENT_NAME = "User";
 const COLLECTTION_NAME = "Users";
 const userSchema = new Schema(
@@ -50,7 +51,7 @@ userSchema.pre("save", async function (next) {
   this.urs_id = counter.seq;
 
   if (!this.usr_slug) {
-    this.usr_slug = `uid${Date.now()}${Math.floor(Math.random() * 10 + 1)}`;
+    this.usr_slug = randomId();
   }
   next();
 });

@@ -1,27 +1,73 @@
 "use strict";
 const slugify = require("slugify");
 const { model, Schema } = require("mongoose");
-const { min, uniq } = require("lodash");
+const { randomId } = require("../utils");
 const Document_name = "Spu";
 const Collection_name = "Spus";
 
 const spuSchema = new Schema(
   {
-    pro_id: { type: String, unique: true },
-    pro_name: {
+    spu_id: { type: String, unique: true },
+    spu_name: {
       type: String,
-      required: true,
+      required: [true, "The {PATH} field cannot be left blank"],
+      unique: [true, "The {PATH} field must be unique"],
     },
-    pro_slug: String,
-    pro_description: String,
-    pro_category: { type: Array, default: [] },
-    pro_shop: {
+    spu_brand: {
+      type: Schema.Types.ObjectId,
+      ref: "Brand",
+      default: null,
+    },
+    spu_slug: String,
+    spu_description: String,
+    spu_category: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Category",
+        required: [true, "The {PATH} field cannot be left blank"],
+      },
+    ],
+    spu_shopId: {
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-    pro_thumb: String,
-    pro_images: { type: Array, default: [] },
-    pro_attributes: { type: Schema.Types.Mixed, required: true },
+    spu_thumb: String,
+    spu_images: {
+      // nhung RT da duoc su dung
+      type: Array,
+      default: [],
+      validate: {
+        validator: function (v) {
+          return v.length > 0;
+        },
+        message: "Image listing must have at least one product ",
+      },
+    },
+    spu_video: { type: String, default: "" },
+    spu_attributes: [
+      {
+        attribute_id: {
+          type: Schema.Types.ObjectId,
+          default: null,
+        },
+        attribute_name: {
+          type: String,
+          default: null,
+        },
+        attribute_values: [
+          new Schema({
+            value_id: {
+              type: Schema.Types.ObjectId,
+              default: null,
+            },
+            value_name: {
+              type: String,
+              default: null,
+            },
+          }),
+        ],
+      },
+    ],
 
     /*{
 
@@ -36,14 +82,33 @@ const spuSchema = new Schema(
    ]
 
    }*/
-    pro_ratingsAverage: {
+    spu_ratingsAverage: {
+      //only admin can set, edit
       type: Number,
       default: 4.5,
       min: [1, "Rating must be above 1.0"],
       max: [5, "Rating must be below 5.0"],
       set: (val) => Math.round(val * 10) / 10,
     },
-    pro_variations: { type: Array, default: [] },
+    spu_variations: [
+      {
+        images: [
+          {
+            type: String,
+          },
+        ],
+        options: [
+          {
+            type: String,
+            required: [true, "The {PATH} field cannot be left blank"],
+          },
+        ],
+        name: {
+          type: String,
+          required: [true, "The {PATH} field cannot be left blank"],
+        },
+      },
+    ],
     /*
     {
   tier_variation:[
@@ -59,13 +124,14 @@ const spuSchema = new Schema(
   ]
   }
   */
-    pro_status: {
+    //Only administrators can adjust deleted, locked, and pending status
+    spu_status: {
       type: String,
       default: "draft",
-      enum: ["draft", "active", "pending", "block", "deleted"],//draft: chưa hoàn thiện, active: đã hoàn thiện, pending: chờ duyệt, block: bị chặn, deleted: đã xóa
+      enum: ["draft", "active", "pending", "block", "deleted"], //draft: chưa hoàn thiện, active: đã hoàn thiện, pending: chờ duyệt, block: bị chặn, deleted: đã xóa
     },
-    pro_selled: { type: Number, default: 0 },
-    pro_viewed: { type: Number, default: 0 },
+    spu_selled: { type: Number, default: 0 }, //only admin can set, edit
+    spu_viewed: { type: Number, default: 0 }, //only admin can set, edit
   },
   {
     collection: Collection_name,
@@ -73,11 +139,13 @@ const spuSchema = new Schema(
   }
 );
 
-spuSchema.index({ pro_name: "text", pro_description: "text" });
+spuSchema.index({ spu_name: "text", spu_description: "text" });
 spuSchema.pre("save", async function (next) {
-  if(!this.pro_id){
-
-      this.pro_id = `proid${Date.now()}${Math.floor(Math.random() * 10 + 1)}`;
+  if (!this.spu_id) {
+    this.spu_id = randomId();
+  }
+  if (!this.spu_thumb) {
+    this.spu_thumb = this.spu_images[0];
   }
   next();
 });

@@ -12,7 +12,7 @@ const apiKey = async (req, res, next) => {
     const key = req.headers[headers.API_KEY];
     const apiKey = await findByCode(key);
     if (!apiKey) {
-      throw new ForbiddenError("Error: Key is invalid");
+      throw new ForbiddenError(" Key is invalid");
     }
 
   } catch (err) {
@@ -24,11 +24,11 @@ const permission = async (permission) => {
   return (req, res, next) => {
     try {
       if (!req.objKey.permissions) {
-        throw new NotAcceptableError("Error: Permission denied");
+        throw new NotAcceptableError(" Permission denied");
       }
       const validPermissions = req.objKey.permissions.includes(permission);
       if (!validPermissions) {
-        throw new NotAcceptableError("Error: Permission denied");
+        throw new NotAcceptableError(" Permission denied");
       }
      
     } catch (err) {

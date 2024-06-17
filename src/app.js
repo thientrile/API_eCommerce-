@@ -34,11 +34,12 @@ app.use((req, res, next) => {
 // # error management function
 app.use((error, req, res, next) => {
   const statusCode = error.status || 500;
+  console.log(error);
   return res.status(statusCode).json({
-    status: "error",
+    status: "Error",
     code: statusCode,
     message: error.message || "Internal Server Error",
-    stack: error.stack,
+ 
   });
 });
 

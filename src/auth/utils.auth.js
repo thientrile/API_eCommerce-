@@ -16,7 +16,7 @@ const createTokenPair = async (payload, publicKey, privateKey) => {
   });
 
   JWT.verify(accessToken, publicKey, (err) => {
-    if (err) throw new AuthFailureError("Error: Invalid User");
+    if (err) throw new AuthFailureError(" Invalid User");
   });
   return { accessToken, refreshToken };
 };
@@ -25,9 +25,9 @@ const authertication = async (req, res, next) => {
     //check clientID
     const clientId = req.headers[HEADERS.CLIENT_ID];
     //get accecess token
-    if (!clientId) throw new AuthFailureError("Error: Invalid client id");
+    if (!clientId) throw new AuthFailureError(" Invalid client id");
     const keyStore = await findByClientId(clientId);
-    if (!keyStore) throw new AuthFailureError("Error: Invalid client id");
+    if (!keyStore) throw new AuthFailureError(" Invalid client id");
     const userId = keyStore.
     tk_userId
     .valueOf();
@@ -39,10 +39,10 @@ const authertication = async (req, res, next) => {
         keyStore.tk_privateKey,
         (err, decoded) => {
           if (err) {
-            throw new AuthFailureError("Error: Refresh Token has expired");
+            throw new AuthFailureError(" Refresh Token has expired");
           }
           if (userId !== decoded._id)
-            throw new AuthFailureError("Error: Invalid User ");
+            throw new AuthFailureError(" Invalid User ");
           req.keyStore = keyStore;
           req.user = decoded;
           req.refreshToken = refreshToken;
@@ -54,16 +54,16 @@ const authertication = async (req, res, next) => {
     const accessToken = req.headers[HEADERS.AUTHORIZATION];
     if(!accessToken)
     if (accessToken !== keyStore.tk_accessToken) {
-      throw new AuthFailureError("Error: Invalid Token");
+      throw new AuthFailureError(" Invalid Token");
     }
 
  return   JWT.verify(accessToken, keyStore.tk_publicKey, (err, decoded) => {
       if (err) {
-        throw new AuthFailureError("Error: Token has expired");
+        throw new AuthFailureError(" Token has expired");
       }
 
       if (userId !== decoded._id)
-        throw new AuthFailureError("Error: Invalid User");
+        throw new AuthFailureError(" Invalid User");
       req.keyStore = keyStore;
       req.user = decoded;
       next();

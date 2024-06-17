@@ -11,4 +11,5 @@ router.use(apiKey)
 // router.use(permission('777'))
 router.use(`${link}/rbac`,require('./rbac'))
 router.use(`${link}/user`,require('./user'))
+router.use(`${link}/product`,require('./product'))
 module.exports = router;

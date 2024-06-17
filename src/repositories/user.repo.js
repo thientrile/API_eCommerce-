@@ -1,7 +1,7 @@
 "use strict";
 
 const userModel = require("../models/user.model");
-const { isValidation } = require("../utils");
+const { isValidation, convertToObjectIdMongoose } = require("../utils");
 
 const checkUserExistById = async (id) => {
   return userModel.findById(id).lean();
@@ -20,17 +20,20 @@ const userFindByusername = async (username) => {
   }
   return userModel.findOne(filter).lean();
 };
-const getRoleNameByUserId= async(id)=>{
-  return userModel.findById(id).populate({
-    path: "usr_role",
-    select: { rol_name: 1, _id: 1}
-  }).select('usr_role').lean();
-
-}
+const getRoleNameByUserId = async (id) => {
+  return userModel
+    .findById(convertToObjectIdMongoose(id))
+    .populate({
+      path: "usr_role",
+      select: { rol_name: 1, _id: 1 },
+    })
+    .select("usr_role")
+    .lean();
+};
 
 module.exports = {
   checkUserExistById,
   userDeleteById,
   userFindByusername,
-  getRoleNameByUserId
+  getRoleNameByUserId,
 };

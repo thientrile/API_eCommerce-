@@ -28,15 +28,17 @@ const KeyTokenSchema = new Schema(
       type: String,
       required: true,
     },
-    tk_accessToken: {
-      type: String,
-      required: true,
-    },
+ 
     tk_refreshTokensUsed: {
       // nhung RT da duoc su dung
       type: Array,
       default: [],
     },
+    expiresAt: { // Thêm trường để theo dõi thời gian hết hạn
+      type: Date,
+      default: () => Date.now() + 1209600000, // 14 ngày trong milliseconds
+      expires: '1d' // Tạo TTL index để tự động xóa sau 14 ngày
+    }
     
   },
   {

@@ -1,38 +1,28 @@
-/** @format */
-
 "use strict";
-
-const { Mongoose } = require("mongoose");
-const resourceModel = require("../models/resource.model");
-const roleModel = require("../models/role.model");
+const ResourceModel = require("../models/resource.model");
+const RoleModel = require("../models/role.model");
 const {
   convertToObjectIdMongoose,
-  omitInfoData,
   renameObjectKey,
+  addPrefixToKeys,
+  removePrefixFromKeys,
 } = require("../utils");
 const { BadRequestError } = require("../core/error.response");
 const { grantAccess } = require("../middlewares/rbac.middleware");
-const { getGrants, getAllGrants } = require("../repositories/role.repo");
-/**
- * create resource by admin
- * @param {string} name
- * @param {string} slug
- * @param {string} description
- * @param {string} userId
- */
-const createResource = async (payload) => {
-  const { name, slug, description, userId } = payload;
-  // middleware check premission
-  await grantAccess(userId, "createAny", "resource");
-  try {
-    //new resource
+const roleRepo = require("../repositories/role.repo");
 
-    const resource = await resourceModel.create({
+// Create Resource
+async function createResource({ name, slug, description, userId }) {
+  await grantAccess(userId, "createAny", "resource");
+
+  try {
+    const resource = await ResourceModel.create({
       src_name: name,
       src_slug: slug,
       src_description: description,
     });
-    const result = renameObjectKey(
+
+    return renameObjectKey(
       {
         src_name: "name",
         src_slug: "slug",
@@ -41,112 +31,124 @@ const createResource = async (payload) => {
       },
       resource.toObject()
     );
-    return result;
   } catch (err) {
-    console.log(err);
-    throw new BadRequestError("Resoucre already exists");
+    if (err.code === 11000) {
+      // Check for duplicate key error
+      throw new BadRequestError("Resource already exists");
+    } else {
+      throw err; // Rethrow other errors for potential handling
+    }
   }
-};
+}
 
-/**
- * get resource list by admin
- * @param {Mongoose.ObjectId}
- * @param {number} limit
- * @param {number} offset
- * @param {string} search
- */
-const resourceList = async ({
-  userId,
-  limit = 30,
-  offset = 0,
-  search = "",
-}) => {
-  // 1. check admin ? middleware function
+// Get Resource List
+async function resourceList({ userId, limit = 30, offset = 0, search = "" }) {
   await grantAccess(userId, "readAny", "resource");
-  try {
-    // 2. get list of resources
-    const resources = await resourceModel.aggregate([
-      {
-        $project: {
-          name: "$src_name",
-          slug: "$src_slug",
-          description: "$src_description",
-          _id: 0,
-          resourceId: "$_id",
-          createAt: 1,
-        },
-      },
-      {
-        $match: {
-          $or: [
-            { name: { $regex: search, $options: "i" } },
-            { slug: { $regex: search, $options: "i" } },
-            { description: { $regex: search, $options: "i" } },
-          ],
-        },
-      },
-      { $sort: { createdAt: -1 } }, // Sort by creation date, newest first
-      { $skip: parseInt(offset) },
-      { $limit: parseInt(limit) },
-    ]);
 
-    return resources;
-  } catch (err) {
-    console.log(err);
-    return [];
-  }
-};
-/**
- * create role by admin
- * @param {string} name
- * @param {string} slug
- * @param {string} description
- *
- */
-const createRole = async (payload) => {
-  const { name, slug, description, grants, userId } = payload;
-  // middleware check premission admin
+  const resources = await ResourceModel.aggregate([
+    {
+      $project: {
+        name: "$src_name",
+        slug: "$src_slug",
+        description: "$src_description",
+        _id: 0,
+        resourceId: "$_id",
+        createdAt: 1,
+      },
+    },
+    {
+      $match: {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { slug: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+        ],
+      },
+    },
+    { $sort: { createdAt: -1 } },
+    { $skip: parseInt(offset) },
+    { $limit: parseInt(limit) },
+  ]);
+
+  return resources;
+}
+
+// Create Role
+async function createRole( payload, userId ) {
   await grantAccess(userId, "createAny", "role");
-  try {
-    // create role
-    const role = await roleModel.create({
-      rol_name: name,
-      rol_slug: slug,
-      rol_description: description,
-      rol_grants: grants,
-    });
-    return role;
-  } catch (err) {
+
+  const checkExist = await RoleModel.findOne({
+    rol_name: payload.name,
+    rol_parentId: convertToObjectIdMongoose(payload.parentId),
+  });
+  if (checkExist) {
     throw new BadRequestError("Role already exists");
   }
-};
-const addGrantsToRole = async ({ userId, arr }) => {
-  await grantAccess(userId, "updateAny", "role");
-  try {
-    arr.forEach(async (e) => {
-      await roleModel.findOneAndUpdate(
-        { _id: convertToObjectIdMongoose(e.roleId) },
-        { $push: { rol_grants: e.grants } }
-      );
-      return getAllGrants();
+  let rightValue;
+  if (payload.parentId) {
+    const parentRole = await RoleModel.findOne({
+      _id: convertToObjectIdMongoose(payload.parentId),
     });
-  } catch (err) {
-    throw new BadRequestError("Role not exists");
+    if (!parentRole) {
+      throw new Error("Parent role not found");
+    }
+    rightValue = parentRole.rol_right;
+    await RoleModel.updateMany(
+      {
+        rol_right: { $gte: rightValue },
+      },
+      {
+        $inc: { rol_right: 2 },
+      }
+    );
+    await RoleModel.updateMany(
+      {
+        rol_left: { $gt: rightValue },
+      },
+      {
+        $inc: { rol_left: 2 },
+      }
+    );
+  } else {
+    const maxRightValue = await RoleModel.findOne(
+      { rol_parentId: null },
+      "rol_right",
+      {
+        sort: { rol_right: -1 },
+      }
+    );
+    rightValue = maxRightValue ? maxRightValue.rol_right + 1 : 1;
   }
-};
-const roleList = async ({
-  userId = 0,
-  limit = 30,
-  offset = 0,
-  search = "",
-}) => {
+  payload.left = rightValue;
+  payload.right = rightValue + 1;
+  console.log("payload", payload);
+  const data = addPrefixToKeys(payload, "rol_");
+  console.log("data", data);
+  const role = await RoleModel.create(data);
+  return removePrefixFromKeys(role.toObject(), "rol_");
+}
+
+// Add Grants to Role
+async function addGrantsToRole({ userId, arr }) {
+  await grantAccess(userId, "updateAny", "role");
+
+  for (const { roleId, grants } of arr) {
+    await RoleModel.findOneAndUpdate(
+      { _id: convertToObjectIdMongoose(roleId) },
+      { $push: { rol_grants: grants } } // Use $push to add elements to array
+    );
+  }
+
+  return roleRepo.getAllGrants();
+}
+
+// Get Role List
+async function roleList({ userId = 0, limit = 30, offset = 0, search = "" }) {
+  // You might want to consider adding the access control check here as well
   await grantAccess(userId, "readAny", "role");
-  try {
-    return await getGrants(limit, offset, search);
-  } catch (err) {
-    return [];
-  }
-};
+
+  return await roleRepo.getGrants(limit, offset, search);
+}
 
 module.exports = {
   resourceList,

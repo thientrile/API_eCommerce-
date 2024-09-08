@@ -15,13 +15,9 @@ const apiKeySchema = new Schema({
         default:false
     },
     app_permissions:{
-        type:String,
-        enum:['777','444','111'],
+        type:Array,
         required:true
-    }
-
-
-   
+    }   
 },{
     timestamps:true,
     collection:collectionName

@@ -12,7 +12,7 @@ const signup = async (req, res, next) => {
 
   new SuccessReponse({
     message: "User created successfully",
-    metadata: await signUP({ role:  req.query.role||'user', ...req.body }),
+    metadata: await  signUP({ role:  req.query.role||'user', ...req.body }),
   }).send(res);
 };
 const logIn = async (req, res, next) => {

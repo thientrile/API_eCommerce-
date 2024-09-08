@@ -13,5 +13,4 @@ const findByCode = async (code) => {
 
   return findApikey({ app_code: code, app_status: true });
 };
-
 module.exports = { createCode, findByCode };

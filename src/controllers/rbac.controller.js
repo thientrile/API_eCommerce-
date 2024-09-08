@@ -21,7 +21,7 @@ const {
 const newRole = async (req, res, next) => {
   new SuccessReponse({
     message: "Role created successfully",
-    metadata: await createRole({ userId: req.user._id, ...req.body }),
+    metadata: await createRole(req.body,req.user._id),
   }).send(res);
 };
 

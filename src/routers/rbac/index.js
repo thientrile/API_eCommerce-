@@ -10,7 +10,9 @@ const {
   addGrant
 } = require("../../controllers/rbac.controller");
 const { asyncHandler } = require("../../helpers/asyncHandler");
+const { permission } = require("../../auth/check.auth");
 const { authertication } = require("../../auth/utils.auth");
+// router.use(permission("777"));
 router.use(authertication)
 router.post(
   "/role",

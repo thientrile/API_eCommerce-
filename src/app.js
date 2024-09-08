@@ -7,25 +7,33 @@ const io = require("socket.io")(httpServer);
 const morgan = require("morgan");
 const { default: helmet } = require("helmet");
 const compression = require("compression");
-const nodeEnv = process.env.NODE_ENV || "dev";
 // variables global
 global._io = io;
 
 // init middleware
-app.use(morgan(nodeEnv));
+app.use(morgan("combined"));
 app.use(helmet());
 app.use(compression());
 app.use(express.json()); // for parsing application/json
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+
 // init db
+// init mongodb
 require("./db/mongoDB.db");
+
+// init redis
+const initRedis = require("./db/redis.db");
+initRedis.init();
+// init elasticsearch
+const Elasticsearch = require("./db/elasticSearch.db");
+Elasticsearch.init();
+
 // init routers
 app.use("", require("./routers"));
 // init socket IO
 
 // #function middleware error
 app.use((req, res, next) => {
-  
   const error = new Error("Not Found");
   error.status = 404;
   next(error);
@@ -39,7 +47,6 @@ app.use((error, req, res, next) => {
     status: "Error",
     code: statusCode,
     message: error.message || "Internal Server Error",
- 
   });
 });
 

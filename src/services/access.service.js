@@ -46,9 +46,10 @@ const handlerRefreshToken = async (keyStore, user, refreshToken) => {
     },
 
     tk_accessToken: tokens.accessToken,
+    expiresAt: Date.now() + 1209600000,
   }).then(() => ({
     uniqueId: key.tk_clientId,
-    username: user.username,
+    // username: user.username,
     tokens,
   }));
 };
@@ -108,7 +109,7 @@ const login = async ({ username, password }) => {
   })
     .then((result) => ({
       uniqueId: result.clientId,
-      username: username,
+      // username: username,
       tokens,
     }))
     .catch((err) => {
@@ -135,7 +136,7 @@ const signUP = async ({ name, sex, date, username, password, role }) => {
   // hash the password
   const passwordHash = await bcrypt.hash(password, 10);
   // get role _id
-  const roleId = await getId(role === "user" ? "user" : "shop");
+  const roleId = await getId(role === "user" ? "user" : "seller");
   // check type username
   let userData = {
     usr_name: name,
@@ -191,7 +192,7 @@ const signUP = async ({ name, sex, date, username, password, role }) => {
   })
     .then((result) => ({
       uniqueId: result.clientId,
-      username: username,
+      // username: username,
       tokens,
     }))
     .catch((err) => {
@@ -201,7 +202,6 @@ const signUP = async ({ name, sex, date, username, password, role }) => {
 };
 // logout
 const logout = async (keyStore) => {
-  
   return await deleteByClientId(keyStore.tk_clientId)
     .then(() => 1)
     .catch(() => {

@@ -11,22 +11,16 @@ const spuSchema = new Schema(
     spu_name: {
       type: String,
       required: [true, "The {PATH} field cannot be left blank"],
-      unique: [true, "The {PATH} field must be unique"],
     },
     spu_brand: {
-      type: Schema.Types.ObjectId,
-      ref: "Brand",
-      default: null,
+      type: Schema.Types.Mixed,
     },
     spu_slug: String,
     spu_description: String,
-    spu_category: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Category",
-        required: [true, "The {PATH} field cannot be left blank"],
-      },
-    ],
+    spu_category: {
+      type: Schema.Types.Mixed,
+    },
+
     spu_shopId: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -48,7 +42,7 @@ const spuSchema = new Schema(
       {
         attribute_id: {
           type: Schema.Types.ObjectId,
-          default: null,
+          // default: null,
         },
         attribute_name: {
           type: String,
@@ -58,10 +52,11 @@ const spuSchema = new Schema(
           new Schema({
             value_id: {
               type: Schema.Types.ObjectId,
-              default: null,
+              // default: null,
             },
             value_name: {
               type: String,
+
               default: null,
             },
           }),
@@ -127,8 +122,8 @@ const spuSchema = new Schema(
     //Only administrators can adjust deleted, locked, and pending status
     spu_status: {
       type: String,
-      default: "draft",
-      enum: ["draft", "active", "pending", "block", "deleted"], //draft: chưa hoàn thiện, active: đã hoàn thiện, pending: chờ duyệt, block: bị chặn, deleted: đã xóa
+     
+      enum: ["draft", "active", "active_only_on_shop","pending", "block", "deleted", "hide"], //draft: chưa hoàn thiện, active: đã hoàn thiện, pending: chờ duyệt, block: bị chặn, deleted: đã xóa
     },
     spu_selled: { type: Number, default: 0 }, //only admin can set, edit
     spu_viewed: { type: Number, default: 0 }, //only admin can set, edit
@@ -141,6 +136,7 @@ const spuSchema = new Schema(
 
 spuSchema.index({ spu_name: "text", spu_description: "text" });
 spuSchema.pre("save", async function (next) {
+  this.spu_slug = slugify(this.spu_name, { lower: true });
   if (!this.spu_id) {
     this.spu_id = randomId();
   }

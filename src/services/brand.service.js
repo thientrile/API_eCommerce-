@@ -1,6 +1,6 @@
 "use strict";
 const { checkPermission } = require("../middlewares/rbac.middleware");
-const { AuthFailureError,BadRequestError } = require("../core/error.response");
+const { AuthFailureError, BadRequestError } = require("../core/error.response");
 const { addPrefixToKeys, removePrefixFromKeys } = require("../utils");
 const brandModel = require("../models/brand.model");
 const createBrand = async (userId, payload) => {
@@ -9,7 +9,7 @@ const createBrand = async (userId, payload) => {
   if (!permission) {
     throw new AuthFailureError("You do not have permission to create brand");
   }
-
+  payload.created_by = userId;
   const data = addPrefixToKeys(payload, "brand_");
   const brand = (
     await brandModel.create(data).catch((_) => {
@@ -24,7 +24,6 @@ const createBrand = async (userId, payload) => {
 
 /**
  * Retrieves a list of brands based on the provided parameters.
- *
  * @param {string} userId - The ID of the user making the request.
  * @param {number} limit - The maximum number of brands to retrieve. Defaults to 100 if not provided.
  * @param {number} offset - The number of brands to skip. Defaults to 0 if not provided.
@@ -63,7 +62,7 @@ const brandList = async (userId, limit, offset, search, cate_id) => {
   ]);
   const result = brand.map((item) => {
     item._id = item._id.toString();
-    item.cate_id=item.cate_id.toString();
+    item.cate_id = item.cate_id.toString();
     return permission.filter(item);
   });
   return result;

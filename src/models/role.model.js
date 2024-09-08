@@ -13,7 +13,6 @@ const roleSchema = new Schema(
     rol_name: {
       type: String,
       require: [true, "Role name is required"],
-      unique: [true, "Role name already exists"],
     },
     rol_slug: { type: String },
     rol_status: {
@@ -33,6 +32,9 @@ const roleSchema = new Schema(
         attributes: { type: String, default: "*" },
       },
     ],
+    rol_parentId: { type: Schema.Types.ObjectId, ref: DOCUMENT_NAME },
+    rol_left: { type: Number, default: 0 },
+    rol_right: { type: Number, default: 0 },
   },
   {
     timestamps: true,
@@ -41,7 +43,7 @@ const roleSchema = new Schema(
 );
 roleSchema.pre("save", async function (next) {
   if (!this.rol_slug) {
-    this.rol_slug = `rui${Date.now()}${Math.floor((Math.random() * 10) + 1)}`;
+    this.rol_slug = `rui${Date.now()}${Math.floor(Math.random() * 10 + 1)}`;
   }
 
   next();

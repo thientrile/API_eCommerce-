@@ -21,24 +21,66 @@ const {
 const createCategory = async (userId, payload) => {
   //check the middleware's permissions are admin
   const permission = await grantAccess(userId, "createAny", "category");
-
-  if (payload.parent_id) {
-    payload.parent_id = convertToObjectIdMongoose(payload.parent_id);
+  const checkExist = await cateogoryModel.findOne({
+    cate_name: payload.name,
+    cate_parentId: payload.parentId
+      ? convertToObjectIdMongoose(payload.parentId)
+      : null,
+  });
+  if (checkExist) {
+    throw new BadRequestError("Category already exist");
   }
-  //create category
-  const category = (
-    await cateogoryModel
+  let rightValue;
+  if (payload.parentId) {
+    const parentCategory = await cateogoryModel.findOneAndUpdate(
+      {
+        _id: convertToObjectIdMongoose(payload.parentId),
+      },
+      { cate_is_leaf: false },
+      { new: true }
+    );
+    if (!parentCategory) {
+      throw new Error("Parent category not found");
+    }
 
-      .create(addPrefixToKeys(payload, "cate_"))
-      .catch((_) => {
-        throw new BadRequestError("Category already exist");
-      })
-  ).toJSON();
-  // return  category
+    rightValue = parentCategory.cate_right;
+    await cateogoryModel.updateMany(
+      {
+        cate_right: { $gte: rightValue },
+      },
+      {
+        $inc: { cate_right: 2 },
+      }
+    );
+    await cateogoryModel.updateMany(
+      {
+        cate_left: { $gt: rightValue },
+      },
+      {
+        $inc: { cate_left: 2 },
+      }
+    );
+  } else {
+    const maxRightValue = await cateogoryModel.findOne(
+      { cate_parentId: null },
+      "cate_right",
+      {
+        sort: { cate_right: -1 },
+      }
+    );
+    rightValue = maxRightValue ? maxRightValue.cate_right + 1 : 1;
+  }
+  payload.left = rightValue;
+  payload.right = rightValue + 1;
+  const data = addPrefixToKeys(payload, "cate_");
+  const category = await cateogoryModel.create(data).catch((_) => {
+    throw new BadRequestError("Category already exist");
+  });
 
-  const result = removePrefixFromKeys(category, "cate_");
+  const result = removePrefixFromKeys(category.toJSON(), "cate_");
   result._id = result._id.toString();
-  result.parent_id = result.parent_id.toString();
+  result.parentId = !result.parentId ? null : result.parentId.toString();
+  result.rootId = !result.rootId ? null : result.parentId.toString();
   return permission.filter(result);
 };
 /**
@@ -60,6 +102,17 @@ const editCategory = async (userId, payload) => {
   ).catch((_) => {
     throw new NotFoundError("Category not found");
   });
+  cateogoryModel.updateMany(
+    {
+      cate_left: { $gte: category.cate_left },
+      cate_right: { $lte: category.cate_right },
+    },
+    {
+      $set: {
+        cate_is_active: payload.is_active,
+      },
+    }
+  );
   category._id = category._id.toString();
   return permission.filter(removePrefixFromKeys(category, "cate_"));
 };
@@ -72,31 +125,27 @@ const editCategory = async (userId, payload) => {
  */
 const categoryList = async (userId) => {
   //check the middleware's permissions
-  const permission = await grantAccess(userId, "readAny", "category");
-  if (!permission) {
-    throw new AuthFailureError(
-      "You dont have permission to perform this action"
-    );
-  }
+  await grantAccess(userId, "readAny", "category");
+
   //get all category
   const category = await cateogoryModel.aggregate([
     {
+      $match: {
+        cate_is_active: true,
+      },
+    },
+    {
       $project: {
-        _id: 0,
-        id: "$_id",
+        _id: 1,
         name: "$cate_name",
-        parent_id: "$cate_parent_id",
-        is_active: "$cate_is_active",
+        parentId: "$cate_parentId",
         is_leaf: "$cate_is_leaf",
+        is_active: "$cate_is_active",
       },
     },
   ]);
-  const result = category.map((item) => {
-    item.id = item.id.toString();
-    item.parent_id = item.parent_id ? item.parent_id.toString() : null;
-    return permission.filter(item);
-  });
-  return result;
+
+  return category;
 };
 // const delCategory= async (userId,payload)=>{
 //   //check the middleware's permissions

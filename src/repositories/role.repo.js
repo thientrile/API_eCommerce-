@@ -8,6 +8,12 @@ const getId = async (name) => {
 const getAllGrants = async () => {
   return roleModel.aggregate([
     {
+      $match: {
+        rol_status: "active",
+      },
+    },
+
+    {
       $unwind: "$rol_grants",
     },
     {
@@ -44,14 +50,15 @@ const getAllGrants = async () => {
     },
   ]);
 };
+
 const getGrants = async (limit, offset, search) => {
   // Flexible search logic: Match search string to role OR resource OR action
-  const matchStage = search 
+  const matchStage = search
     ? {
         $or: [
           { role: { $regex: search, $options: "i" } }, // Case-insensitive search
           { resource: { $regex: search, $options: "i" } },
-          { action: { $regex: search, $options: "i" } }
+          { action: { $regex: search, $options: "i" } },
         ],
       }
     : {}; // If no search term, match all documents
@@ -59,7 +66,8 @@ const getGrants = async (limit, offset, search) => {
   return roleModel.aggregate([
     { $unwind: "$rol_grants" }, // Unwind to work with individual grants
     {
-      $lookup: { // Join with resources
+      $lookup: {
+        // Join with resources
         from: "Resources",
         localField: "rol_grants.resourceId",
         foreignField: "_id",
@@ -67,7 +75,8 @@ const getGrants = async (limit, offset, search) => {
       },
     },
     { $unwind: "$resource" }, // Unwind resources for projection
-    { // Project the desired fields
+    {
+      // Project the desired fields
       $project: {
         role: "$rol_name",
         resource: "$resource.src_name",
@@ -77,7 +86,8 @@ const getGrants = async (limit, offset, search) => {
       },
     },
     { $unwind: "$action" }, // Unwind actions for filtering
-    { // Re-project after unwinding
+    {
+      // Re-project after unwinding
       $project: {
         role: 1,
         resource: 1,
@@ -91,9 +101,39 @@ const getGrants = async (limit, offset, search) => {
     { $limit: parseInt(limit) || 10 }, // Default to 10 if not provided
   ]);
 };
+const getListRole = async () => {
+  return roleModel.aggregate([
+    {
+      // Join with the Role collection to get parent details
+      $lookup: {
+        from:"Roles", // Replace with the collection name storing roles
+        localField: "rol_parentId",
+        foreignField: "_id",
+        as: "parentRole",
+      },
+    },
+    {
+      // Unwind to ensure we work with individual parent documents
+      $unwind: {
+        path: "$parentRole",
+        preserveNullAndEmptyArrays: true, // Keep roles without a parent
+      },
+    },
+    {
+      // Project the desired fields and replace rol_parentId with parent name
+      $project: {
+        name: "$rol_name",
+        _id: 0,
+        parent: "$parentRole.rol_name", // Replace with parent's name
+        grants:{$size:"$rol_grants"}
+      },
+    },
+  ]);
+};
 
 module.exports = {
   getId,
   getAllGrants,
   getGrants,
+  getListRole,
 };

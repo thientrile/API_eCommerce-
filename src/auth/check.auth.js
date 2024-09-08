@@ -14,28 +14,30 @@ const apiKey = async (req, res, next) => {
     if (!apiKey) {
       throw new ForbiddenError(" Key is invalid");
     }
-
-  } catch (err) {
-   return next(err);
-  }
-  next()
-};
-const permission = async (permission) => {
-  return (req, res, next) => {
-    try {
-      if (!req.objKey.permissions) {
-        throw new NotAcceptableError(" Permission denied");
-      }
-      const validPermissions = req.objKey.permissions.includes(permission);
-      if (!validPermissions) {
-        throw new NotAcceptableError(" Permission denied");
-      }
-     
-    } catch (err) {
-      return next(err);
+    if (!apiKey.app_status) {
+      throw new ForbiddenError(" Key is invalid");
     }
-    next();
-  };
-
+    req.objKey = apiKey;
+  } catch (err) {
+    return next(err);
+  }
+  next();
 };
+const permission = (permission) => {
+
+  return (req, res, next) => {
+    
+    if (!req.objKey.app_permissions) {
+      return next(new NotAcceptableError(" Permission denied"));
+    }
+    const validPermissions = req.objKey.app_permissions.includes(permission);
+
+    if (!validPermissions) {
+      return next(new NotAcceptableError(" Permission denied"));
+    }
+
+    return next();
+  };
+};
+
 module.exports = { apiKey, permission };

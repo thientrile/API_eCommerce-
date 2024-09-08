@@ -27,14 +27,13 @@ const authertication = async (req, res, next) => {
     //get accecess token
     if (!clientId) throw new AuthFailureError(" Invalid client id");
     const keyStore = await findByClientId(clientId);
+
     if (!keyStore) throw new AuthFailureError(" Invalid client id");
-    const userId = keyStore.
-    tk_userId
-    .valueOf();
+    const userId = keyStore.tk_userId.valueOf();
     // verify refresh token
     const refreshToken = req.headers[HEADERS.REFRESHTOKEN];
     if (refreshToken) {
-   return  JWT.verify(
+      return JWT.verify(
         refreshToken,
         keyStore.tk_privateKey,
         (err, decoded) => {
@@ -52,18 +51,14 @@ const authertication = async (req, res, next) => {
     }
     // verify acccesstoken
     const accessToken = req.headers[HEADERS.AUTHORIZATION];
-    if(!accessToken)
-    if (accessToken !== keyStore.tk_accessToken) {
-      throw new AuthFailureError(" Invalid Token");
-    }
+    if (!accessToken) throw new AuthFailureError(" Invalid Token");
 
- return   JWT.verify(accessToken, keyStore.tk_publicKey, (err, decoded) => {
+    return JWT.verify(accessToken, keyStore.tk_publicKey, (err, decoded) => {
       if (err) {
         throw new AuthFailureError(" Token has expired");
       }
 
-      if (userId !== decoded._id)
-        throw new AuthFailureError(" Invalid User");
+      if (userId !== decoded._id) throw new AuthFailureError(" Invalid User");
       req.keyStore = keyStore;
       req.user = decoded;
       next();
@@ -71,7 +66,6 @@ const authertication = async (req, res, next) => {
   } catch (err) {
     return next(err);
   }
- 
 };
 
 module.exports = { createTokenPair, authertication };

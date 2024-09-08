@@ -2,7 +2,7 @@
 
 "use strict";
 const rbac = require("./role.middleware");
-const { getAllGrants } = require("../repositories/role.repo");
+const { getAllGrants, getListRole } = require("../repositories/role.repo");
 const { getRoleNameByUserId } = require("../repositories/user.repo");
 const { AuthFailureError } = require("../core/error.response");
 /**
@@ -13,11 +13,20 @@ const { AuthFailureError } = require("../core/error.response");
  * @returns {Promise<object>} - The permission object indicating whether the user has permission to perform the action.
  * @throws {AuthFailureError} - If the user does not have permission to perform the action.
  */
+const configAccessControl = async () => {
+  rbac.setGrants(await getAllGrants());
+  const roles = await getListRole();
+
+  roles.forEach((role) => {
+    if (role.parent && role.grants > 0) {
+      rbac.grant(role.parent).extend(role.name);
+    }
+  });
+};
 const grantAccess = async (userId, action, resourse) => {
+  await configAccessControl();
   const roleName = (await getRoleNameByUserId(userId)).usr_role.rol_name;
   try {
-    rbac.setGrants(await getAllGrants());
-    // rbac.grant('admin').extend('shop')
     const permission = rbac.can(roleName)[action](resourse);
     if (!permission.granted) {
       throw new AuthFailureError(
@@ -41,11 +50,12 @@ const grantAccess = async (userId, action, resourse) => {
  * @returns {Promise<boolean|object>} - A promise that resolves to either the permission object if granted, or false if not granted.
  */
 const checkPermission = async (userId, action, resourse) => {
+  await configAccessControl();
   const roleName = (await getRoleNameByUserId(userId)).usr_role.rol_name;
-  rbac.setGrants(await getAllGrants());
-  const permission= await rbac.can(roleName)[action](resourse);
+  const permission = await rbac.can(roleName)[action](resourse);
   return permission.granted ? permission : null;
 };
+
 module.exports = {
   grantAccess,
   checkPermission,

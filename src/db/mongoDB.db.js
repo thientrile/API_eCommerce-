@@ -7,14 +7,13 @@ const {
 } = require("../configs/init.config");
 const httpString = `mongodb://${host}:${port}/${name}`;
 const nodeEnv = process.env.NODE_ENV || "dev";
-const autoIncrement = require("mongoose-auto-increment");
 class DatabaseClass {
   constructor() {
     this.connect();
   }
   async connect() {
     if (nodeEnv === "dev") {
-      mongoose.set("debug", { color: true });
+      // mongoose.set("debug", { color: true });
     }
 
     mongoose
@@ -23,11 +22,12 @@ class DatabaseClass {
       .then((_) => {
         console.log(`Connected MongoDB success ${name}`);
         countConnect();
+        clearTimeout(this.ErrorTimeOut);
       })
       .catch((_) => {
         console.log("Error Connect", httpString);
         console.log("Automatically connect after 5 seconds");
-        setTimeout(() => {
+        this.ErrorTimeOut = setTimeout(() => {
           this.connect();
         }, 5000);
       });

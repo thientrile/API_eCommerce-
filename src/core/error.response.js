@@ -103,6 +103,18 @@ class RequestTimeoutErro extends ErrorResponse {
     super(message, statusCode);
   }
 }
+/**
+ * Represents a Redis error response.
+ * @extends ErrorResponse
+ */
+class RedisErrorRespoint extends ErrorResponse {
+  constructor(
+    message = ReasonPhrases.INTERNAL_SERVER_ERROR,
+    statusCode = StatusCodes.INTERNAL_SERVER_ERROR
+  ) {
+    super(message, statusCode);
+  }
+}
 
 module.exports = {
   ConflictRequestError,
@@ -112,4 +124,5 @@ module.exports = {
   ForbiddenError,
   NotAcceptableError,
   RequestTimeoutErro,
+  RedisErrorRespoint
 };

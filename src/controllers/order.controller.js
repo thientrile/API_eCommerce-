@@ -1,0 +1,39 @@
+"use strict";
+const { SuccessReponse, CREATED } = require("../core/success.response");
+const {
+  createDiscount,
+  getAllDiscountsCodeWithProducts,
+  getAllDiscountCodeByShop,
+  getAmoutDiscountCode,
+} = require("../services/discount.service");
+
+const newDiscount = async (req, res, next) => {
+  new CREATED({
+    message: "Discount created successfully",
+    metadata: await createDiscount(req.user._id, req.body),
+  }).send(res);
+};
+const getAllProductBydiscountCode = async (req, res, next) => {
+  new SuccessReponse({
+    message: "All discount codes with products",
+    metadata: await getAllDiscountsCodeWithProducts(req.user._id, req.body),
+  }).send(res);
+};
+const GetAllDiscountCodeByShop = async (req, res, next) => {
+  new SuccessReponse({
+    message: "All discount codes by shop",
+    metadata: await getAllDiscountCodeByShop(req.user._id, req.query),
+  }).send(res);
+};
+const GetAmoutAfterDiscount = async (req, res, next) => {
+  new SuccessReponse({
+    message: "Amout after discount",
+    metadata: await getAmoutDiscountCode(req.user._id, req.body),
+  }).send(res);
+};
+module.exports = {
+  newDiscount,
+  getAllProductBydiscountCode,
+  GetAllDiscountCodeByShop,
+  GetAmoutAfterDiscount
+};

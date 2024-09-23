@@ -26,8 +26,7 @@ const refretshToken = async (req, res, next) => {
     message: "User refretsh token successfully",
     metadata: await handlerRefreshToken(
       req.keyStore,
-      req.user,
-      req.refreshToken
+      req.user
     ),
   }).send(res);
 };

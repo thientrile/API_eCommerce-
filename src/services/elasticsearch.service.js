@@ -11,9 +11,7 @@ const searchDocument = async (query) => {
   } catch (err) {
     console.error("Error searching documents:", err);
     return null;
-  } finally {
-    await closeClient();
-  }
+  } 
 };
 
 const addDocument = async ({ index, id, payload }) => {
@@ -23,14 +21,12 @@ const addDocument = async ({ index, id, payload }) => {
       id,
       document: payload,
     });
-    console.log(`New Document added: ${JSON.stringify(newDoc.body)}`);
-    return newDoc.body;
+    console.log(`New Document added: ${JSON.stringify(newDoc)}`);
+    return newDoc;
   } catch (err) {
     console.error("Error adding document:", err);
     return null;
-  } finally {
-    await closeClient();
-  }
+  } 
 };
 
 const getDocument = async ({ index, id }) => {
@@ -44,9 +40,7 @@ const getDocument = async ({ index, id }) => {
   } catch (err) {
     console.error("Error retrieving document:", err);
     return null;
-  } finally {
-    await closeClient();
-  }
+  } 
 };
 
 const updateDocument = async ({ index, id, payload }) => {
@@ -61,9 +55,7 @@ const updateDocument = async ({ index, id, payload }) => {
   } catch (err) {
     console.error("Error updating document:", err);
     return null;
-  } finally {
-    await closeClient();
-  }
+  } 
 };
 
 const deleteDocument = async ({ index, id }) => {
@@ -72,14 +64,12 @@ const deleteDocument = async ({ index, id }) => {
       index,
       id,
     });
-    console.log(`Document deleted: ${JSON.stringify(deletedDoc.body)}`);
-    return deletedDoc.body;
+    console.log(`Document deleted: ${JSON.stringify(deletedDoc._index)}`);
+    return deletedDoc;
   } catch (err) {
     console.error("Error deleting document:", err);
     return null;
-  } finally {
-    await closeClient();
-  }
+  } 
 };
 
 const deleteIndex = async ({ index }) => {
@@ -90,9 +80,7 @@ const deleteIndex = async ({ index }) => {
   } catch (err) {
     console.error("Error deleting index:", err);
     return null;
-  } finally {
-    await closeClient();
-  }
+  } 
 };
 
 const updateByQueryDocument = async ({ index, payload }) => {
@@ -106,9 +94,7 @@ const updateByQueryDocument = async ({ index, payload }) => {
   } catch (err) {
     console.error("Error updating documents by query:", err);
     return null;
-  } finally {
-    await closeClient();
-  }
+  } 
 };
 
 module.exports = {

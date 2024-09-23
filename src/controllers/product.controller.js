@@ -114,11 +114,11 @@ const newProduct = async (req, res, next) => {
  */
 const updateProduct = async (req, res, next) => {
   try {
-    console.log(req.query.id);
-    if (!req.query.id) {
+  
+    if (!req.params.id) {
       throw new BadRequestError("The field 'id' is not found");
     }
-    req.body.id = req.query.id;
+    req.body.id = req.params.id;
     new SuccessReponse({
       message: "updated product successfully",
       metadata: await spuService.editSpu(req.user._id, req.body),
@@ -133,12 +133,31 @@ const statusProduct = async (req, res, next) => {
     message: "updated product status successfully",
     metadata: await spuService.statusSpu(
       req.user._id,
-      req.query.id,
-      req.query.status
+      req.params.id,
+      req.body.status
     ),
   }).send(res);
 };
-
+const getlistSpuSeller= async (req,res,next)=>{
+  new SuccessReponse({
+    message: "List product",
+    metadata: await spuService.getListSeller(
+      req.user._id,
+      req.query.status,
+      req.query.limit,
+      req.query.page
+    ),
+  }).send(res);
+}
+const getProductDetail= async (req,res,next)=>{
+  new SuccessReponse({
+    message: "Product detail",
+    metadata: await spuService.getProductDetail(
+      req.user._id,
+      req.params.id
+    ),
+  }).send(res);
+}
 module.exports = {
   updateProduct,
   newProduct,
@@ -148,4 +167,6 @@ module.exports = {
   updateCategory,
   getListCategory,
   statusProduct,
+  getlistSpuSeller,
+  getProductDetail
 };

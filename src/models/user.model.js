@@ -53,14 +53,7 @@ userSchema.pre("save", async function (next) {
   if (!this.usr_slug) {
     this.usr_slug = randomId();
   }
-  await addDocument({
-    index: "user_v001",
-    id: this.usr_id,
-    payload: {
-      avartar: this.usr_avatar,
-      name: this.usr_name,
-    },
-  });
+
   next();
 });
 module.exports = model(DOCUMENT_NAME, userSchema);

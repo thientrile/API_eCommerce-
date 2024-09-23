@@ -6,8 +6,8 @@ const { SuccessReponse } = require("../core/success.response");
 const {
   createRole,
   createResource,
-
-  roleList,
+  listGrants
+  ,
   resourceList,
   addGrantsToRole,
 } = require("../services/rbac.service");
@@ -44,10 +44,10 @@ const newResource = async (req, res, next) => {
  * @param {*} res
  * @param {*} next
  */
-const listRole = async (req, res, next) => {
+const CtrlListGrants = async (req, res, next) => {
   new SuccessReponse({
     message: "list role successfully",
-    metadata: await roleList({
+    metadata: await listGrants({
       userId: req.user._id,
       limit: req.query.limit,
       offset: req.query.offset,
@@ -89,7 +89,7 @@ const addGrant = async (req, res, next) => {
 module.exports = {
   newRole,
   newResource,
-  listRole,
+  CtrlListGrants,
   listResource,
   addGrant,
 };

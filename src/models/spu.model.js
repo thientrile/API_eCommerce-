@@ -16,7 +16,10 @@ const spuSchema = new Schema(
       type: Schema.Types.Mixed,
     },
     spu_slug: String,
-    spu_description: String,
+    spu_description: {
+      type: String,
+      required: [true, "The {PATH} field cannot be left blank"],
+    },
     spu_category: {
       type: Schema.Types.Mixed,
     },

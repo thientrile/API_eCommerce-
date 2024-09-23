@@ -5,6 +5,7 @@ const rbac = require("./role.middleware");
 const { getAllGrants, getListRole } = require("../repositories/role.repo");
 const { getRoleNameByUserId } = require("../repositories/user.repo");
 const { AuthFailureError } = require("../core/error.response");
+const { getData, setData } = require("../services/redis.service");
 /**
  * Grants access to perform a specific action on a resource based on the user's role.
  * @param {string} userId - The ID of the user.
@@ -13,19 +14,33 @@ const { AuthFailureError } = require("../core/error.response");
  * @returns {Promise<object>} - The permission object indicating whether the user has permission to perform the action.
  * @throws {AuthFailureError} - If the user does not have permission to perform the action.
  */
-const configAccessControl = async () => {
-  rbac.setGrants(await getAllGrants());
-  const roles = await getListRole();
+const initAccessControl = async () => {
+  console.log("init rbac");
+  const redistGrants = await getData("grants");
+  if (!redistGrants) {
+    const listgrants = await getAllGrants();
+    await setData("grants", listgrants, 86400);
+    rbac.setGrants(listgrants);
+  } else {
+    rbac.setGrants(redistGrants);
+  }
+  let roles = await getData("listRoles");
+  if (!roles) {
+    roles = await getListRole();
+    await setData("listRole", roles, 86400);
+  }
 
-  roles.forEach((role) => {
+   roles.forEach((role) => {
     if (role.parent && role.grants > 0) {
       rbac.grant(role.parent).extend(role.name);
     }
   });
+
 };
 const grantAccess = async (userId, action, resourse) => {
-  await configAccessControl();
+
   const roleName = (await getRoleNameByUserId(userId)).usr_role.rol_name;
+
   try {
     const permission = rbac.can(roleName)[action](resourse);
     if (!permission.granted) {
@@ -50,8 +65,9 @@ const grantAccess = async (userId, action, resourse) => {
  * @returns {Promise<boolean|object>} - A promise that resolves to either the permission object if granted, or false if not granted.
  */
 const checkPermission = async (userId, action, resourse) => {
-  await configAccessControl();
-  const roleName = (await getRoleNameByUserId(userId)).usr_role.rol_name;
+
+
+  const roleName = (await getRoleNameByUserId(userId)).usr_role.rol_name;  
   const permission = await rbac.can(roleName)[action](resourse);
   return permission.granted ? permission : null;
 };
@@ -59,4 +75,5 @@ const checkPermission = async (userId, action, resourse) => {
 module.exports = {
   grantAccess,
   checkPermission,
+  initAccessControl,
 };

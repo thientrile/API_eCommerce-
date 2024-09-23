@@ -24,13 +24,21 @@ require("./db/mongoDB.db");
 // init redis
 const initRedis = require("./db/redis.db");
 initRedis.init();
+
 // init elasticsearch
 const Elasticsearch = require("./db/elasticSearch.db");
-Elasticsearch.init();
 
+Elasticsearch.init();
+//  inint rbac
+const { initAccessControl } = require("./middlewares/rbac.middleware");
+(async () => {
+  await initAccessControl();
+})();
+// app.use();
 // init routers
 app.use("", require("./routers"));
 // init socket IO
+//init
 
 // #function middleware error
 app.use((req, res, next) => {

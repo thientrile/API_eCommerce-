@@ -20,9 +20,9 @@ class DatabaseClass {
       .connect(httpString, { maxConnecting: 1000 })
 
       .then((_) => {
-        console.log(`Connected MongoDB success ${name}`);
-        countConnect();
-        clearTimeout(this.ErrorTimeOut);
+        console.log(`connecting mongoDB - connecting Status: Connnected`);
+        // countConnect();
+        // clearTimeout(this.ErrorTimeOut);
       })
       .catch((_) => {
         console.log("Error Connect", httpString);

@@ -8,7 +8,7 @@ let clients = {}; // Multiple clients for multiple connections
 const instanceEventListeners = async (elasticClient) => {
   try {
     await elasticClient.ping();
-    console.log("Elasticsearch is connected");
+    console.log("connecting Elasticsearch - connecting Status: Connnected");
   } catch (err) {
     console.error("Error: Connection to Elasticsearch failed", err);
   }

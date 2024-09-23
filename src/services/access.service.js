@@ -29,23 +29,29 @@ const { AuthFailureError } = require("../core/error.response");
  * @throws {AuthFailureError} - Throws an AuthFailureError if the refresh token has expired.
  */
 const handlerRefreshToken = async (keyStore, user, refreshToken) => {
-  const key = await findByClientId(keyStore.tk_clientId);
-
-  if (!key || key.tk_refreshTokensUsed.includes(refreshToken)) {
-    await deleteById(keyStore._id);
-    throw new AuthFailureError(" Refresh Token has expired");
-  }
+  const key = await findByClientId(keyStore.tk_clientId);  
+  const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+    modulusLength: 4096,
+    publicKeyEncoding: {
+      type: "pkcs1",
+      format: "pem",
+    },
+    privateKeyEncoding: {
+      type: "pkcs1",
+      format: "pem",
+    },
+  });
   const tokens = await createTokenPair(
     { _id: user._id, slug: user.slug, role: user.role },
-    key.tk_publicKey,
-    key.tk_privateKey
+    publicKey,
+    privateKey
   );
   return updateById(key._id, {
     $addToSet: {
       tk_refreshTokensUsed: refreshToken, // Mark as used,
     },
+    tk_publicKey: publicKey,
 
-    tk_accessToken: tokens.accessToken,
     expiresAt: Date.now() + 1209600000,
   }).then(() => ({
     uniqueId: key.tk_clientId,
@@ -104,8 +110,6 @@ const login = async ({ username, password }) => {
   return await createKeyToken({
     userId: user._id,
     publicKey: publicKey,
-    token: tokens,
-    privateKey: privateKey,
   })
     .then((result) => ({
       uniqueId: result.clientId,
@@ -158,7 +162,7 @@ const signUP = async ({ name, sex, date, username, password, role }) => {
     throw new ForbiddenError(
       getErrorMessageMongose(
         err,
-        userModel,
+
         " Username or email or phone number already exists"
       )
     );
@@ -187,8 +191,6 @@ const signUP = async ({ name, sex, date, username, password, role }) => {
   return await createKeyToken({
     userId: user._id,
     publicKey: publicKey,
-    token: tokens,
-    privateKey: privateKey,
   })
     .then((result) => ({
       uniqueId: result.clientId,

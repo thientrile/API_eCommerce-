@@ -2,64 +2,122 @@
 
 const { grantAccess } = require("../middlewares/rbac.middleware");
 const warehouseModel = require("../models/warehouse.model");
+const { BadRequestError } = require("../core/error.response");
 const {
   getErrorMessageMongose,
   addPrefixToKeys,
   removePrefixFromKeys,
+  convertToObjectIdMongoose,
+  filterConvert,
 } = require("../utils");
+const { checkExistWarehouse } = require("../repositories/warehouse.repo");
 
-const createWarehouse = async (userId, data) => {
-  const grantAccess = await grantAccess(userId, "createOwn", "warehouse");
+const createWare = async (userId, data) => {
+  const grant = await grantAccess(userId, "createOwn", "warehouse");
   data.userId = userId;
-  const dataWarehouse = addPrefixToKeys(data, "ware_");
+  data.type = data.type ? data.type : "SALES_WAREHOUSE";
+  data.effect_status = data.effect_status ? data.effect_status : "ACTIVE";
+  const dataWarehouse = addPrefixToKeys(grant.filter(data), "ware_");
   const warehouse = (
     await warehouseModel.create(dataWarehouse).catch((err) => {
-      throw new BadRequestError(getErrorMessageMongose(err, warehouseModel));
+      throw new BadRequestError(
+        getErrorMessageMongose(err, "The warehouse name already exists")
+      );
     })
   ).toObject();
-  return grantAccess.filters(removePrefixFromKeys(warehouse, "ware_"));
+  if (data.is_default) {
+    await setDefaultWarehouse(userId, warehouse._id);
+  }
+  return filterConvert(removePrefixFromKeys(warehouse, "ware_"), grant);
 };
-const editWarehouse = async (userId, data) => {
-  const grantAccess = await grantAccess(userId, "updateOwn", "warehouse");
-  data.userId = userId;
+const editWare = async (userId, id, data) => {
+  const grant = await grantAccess(userId, "updateOwn", "warehouse");
   const dataWarehouse = addPrefixToKeys(data, "ware_");
+
   const warehouse = (
     await warehouseModel
       .findOneAndUpdate(
-        { $and: [{ _id: data.id }, { userId: userId }] },
-        data,
+        {
+          _id: convertToObjectIdMongoose(id),
+          ware_userId: convertToObjectIdMongoose(userId),
+        },
+        dataWarehouse,
         { new: true }
       )
       .catch((err) => {
-        throw new BadRequestError(getErrorMessageMongose(err, warehouseModel));
+        throw new BadRequestError(getErrorMessageMongose(err));
       })
   ).toObject();
-  return grantAccess.filters(removePrefixFromKeys(warehouse, "ware_"));
+  if (data.is_default) {
+    await setDefaultWarehouse(userId, warehouse._id);
+  }
+  return filterConvert(removePrefixFromKeys(warehouse, "ware_"), grant);
 };
 const deleteWarehouse = async (userId, id) => {
-  const grantAccess = await grantAccess(userId, "deleteOwn", "warehouse");
-  const warehouse = (
-    await warehouseModel
-      .findByIdAndUpdate(id, {
-        is_deleted: true,
-      })
-      .catch((err) => {
-        throw new BadRequestError(getErrorMessageMongose(err, warehouseModel));
-      })
-  ).toObject();
-  return grantAccess.filters(removePrefixFromKeys(warehouse, "ware_"));
-};
-const getListWarehouse = async (userId) => {
-  const grantAccess = await grantAccess(userId, "readOwn", "warehouse");
-  const warehouses = await warehouseModel
-    .find({ is_deleted: false })
-    .catch((err) => {
-      throw new BadRequestError(getErrorMessageMongose(err, warehouseModel));
-    });
-  return grantAccess.filters(
-    warehouses.map((warehouse) =>
-      removePrefixFromKeys(warehouse.toObject(), "ware_")
+  await grantAccess(userId, "deleteOwn", "warehouse");
+
+  await warehouseModel
+    .findOneAndUpdate(
+      {
+        _id: convertToObjectIdMongoose(id),
+        ware_userId: convertToObjectIdMongoose(userId),
+      },
+      {
+        ware_is_deleted: true,
+        ware_is_default: false,
+      },
+      { new: true }
     )
+    .catch((err) => {
+      throw new BadRequestError(getErrorMessageMongose(err));
+    });
+
+  await warehouseModel.findOneAndUpdate(
+    {
+      ware_userId: convertToObjectIdMongoose(userId),
+      ware_is_deleted: false,
+    },
+    { ware_is_default: true }
   );
+  return 1;
 };
-module.exports = { createWarehouse };
+const getListWarehouse = async (userId, limit = 100, page = 0) => {
+  const grant = await grantAccess(userId, "readOwn", "warehouse");
+  const warehouses = await warehouseModel
+    .find({
+      ware_is_deleted: false,
+      ware_userId: convertToObjectIdMongoose(userId),
+    })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+
+  return warehouses.map((warehouse) => {
+    const result = removePrefixFromKeys(warehouse.toObject(), "ware_");
+    return filterConvert(result, grant);
+  });
+};
+
+const setDefaultWarehouse = async (userId, id) => {
+  await grantAccess(userId, "updateOwn", "warehouse");
+  await warehouseModel.updateMany(
+    { ware_userId: convertToObjectIdMongoose(userId) },
+    { ware_is_default: false }
+  );
+  await warehouseModel.findOneAndUpdate(
+    {
+      _id: convertToObjectIdMongoose(id),
+      ware_userId: convertToObjectIdMongoose(userId),
+      ware_is_deleted: false,
+    },
+    { ware_is_default: true }
+  );
+  return true;
+};
+module.exports = {
+  editWare,
+  createWare,
+  getListWarehouse,
+  deleteWarehouse,
+  setDefaultWarehouse,
+};

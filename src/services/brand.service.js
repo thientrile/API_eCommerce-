@@ -1,7 +1,11 @@
 "use strict";
 const { checkPermission } = require("../middlewares/rbac.middleware");
 const { AuthFailureError, BadRequestError } = require("../core/error.response");
-const { addPrefixToKeys, removePrefixFromKeys } = require("../utils");
+const {
+  addPrefixToKeys,
+  removePrefixFromKeys,
+  filterConvert,
+} = require("../utils");
 const brandModel = require("../models/brand.model");
 const createBrand = async (userId, payload) => {
   //check middleware permission
@@ -15,11 +19,10 @@ const createBrand = async (userId, payload) => {
     await brandModel.create(data).catch((_) => {
       throw new BadRequestError("Brand already exist");
     })
-  ).toJSON();
+  ).toObject();
   const result = removePrefixFromKeys(brand, "brand_");
-  result._id = result._id.toString();
-  result.cate_id = result.cate_id.toString();
-  return permission.filter(result);
+
+  return filterConvert(result, permission);
 };
 
 /**
@@ -60,11 +63,7 @@ const brandList = async (userId, limit, offset, search, cate_id) => {
     { $skip: parseInt(offset) || 0 }, // Default to 0 if not provided
     { $limit: parseInt(limit) || 100 }, // Default to 10 if not provided
   ]);
-  const result = brand.map((item) => {
-    item._id = item._id.toString();
-    item.cate_id = item.cate_id.toString();
-    return permission.filter(item);
-  });
-  return result;
+  
+  return filterConvert(brand, permission);
 };
 module.exports = { createBrand, brandList };

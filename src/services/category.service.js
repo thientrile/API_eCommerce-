@@ -5,6 +5,7 @@ const {
   addPrefixToKeys,
   removePrefixFromKeys,
   convertToObjectIdMongoose,
+  filterConvert,
 } = require("../utils");
 const { cateFindByIdAndUpdate } = require("../repositories/category.repo");
 const {
@@ -73,15 +74,17 @@ const createCategory = async (userId, payload) => {
   payload.left = rightValue;
   payload.right = rightValue + 1;
   const data = addPrefixToKeys(payload, "cate_");
-  const category = await cateogoryModel.create(data).catch((_) => {
-    throw new BadRequestError("Category already exist");
-  });
+  const category = (
+    await cateogoryModel.create(data).catch((_) => {
+      throw new BadRequestError("Category already exist");
+    })
+  ).toObject();
 
-  const result = removePrefixFromKeys(category.toJSON(), "cate_");
-  result._id = result._id.toString();
+  const result = removePrefixFromKeys(category, "cate_");
+
   result.parentId = !result.parentId ? null : result.parentId.toString();
   result.rootId = !result.rootId ? null : result.parentId.toString();
-  return permission.filter(result);
+  return filterConvert(result, permission);
 };
 /**
  * Edits a category.
@@ -113,8 +116,8 @@ const editCategory = async (userId, payload) => {
       },
     }
   );
-  category._id = category._id.toString();
-  return permission.filter(removePrefixFromKeys(category, "cate_"));
+
+  return filterConvert(removePrefixFromKeys(category, "cate_"), permission);
 };
 /**
  * Retrieves a list of categories.

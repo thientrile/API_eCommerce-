@@ -138,22 +138,26 @@ async function addGrantsToRole({ userId, arr }) {
       { $push: { rol_grants: grants } } // Use $push to add elements to array
     );
   }
-
-  return roleRepo.getAllGrants();
+   const result= await roleRepo.getAllGrants()
+   await setData("grants", result, 86400);
+  return result;
 }
 
-// Get Role List
-async function roleList({ userId = 0, limit = 30, offset = 0, search = "" }) {
+// Get  list grants access control
+async function listGrants({ userId = 0, limit = 30, offset = 0, search = "" }) {
   // You might want to consider adding the access control check here as well
   await grantAccess(userId, "readAny", "role");
 
   return await roleRepo.getGrants(limit, offset, search);
 }
-
+// get all list role
+const getListAllRole= async ({userId, parentId=null})=>{
+  
+}
 module.exports = {
   resourceList,
   createResource,
   createRole,
-  roleList,
+  listGrants,
   addGrantsToRole,
 };

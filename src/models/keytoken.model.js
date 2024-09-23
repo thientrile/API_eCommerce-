@@ -3,7 +3,7 @@
 "use strict";
 const { randomUUID } = require("crypto");
 const { Schema, model } = require("mongoose"); // Erase if already required
-const { token } = require("morgan");
+
 const DOCUMENT_NAME = "Key";
 const COLLECTON_NAME = "Keys";
 // Declare the Schema of the Mongo model
@@ -24,22 +24,18 @@ const KeyTokenSchema = new Schema(
       type: String,
       required: true,
     },
-    tk_privateKey: {
-      type: String,
-      required: true,
-    },
- 
+
     tk_refreshTokensUsed: {
       // nhung RT da duoc su dung
       type: Array,
       default: [],
     },
-    expiresAt: { // Thêm trường để theo dõi thời gian hết hạn
+    expiresAt: {
+      // Thêm trường để theo dõi thời gian hết hạn
       type: Date,
       default: () => Date.now() + 1209600000, // 14 ngày trong milliseconds
-      expires: '1d' // Tạo TTL index để tự động xóa sau 14 ngày
-    }
-    
+      expires: "14d", // Tạo TTL index để tự động xóa sau 14 ngày
+    },
   },
   {
     collection: COLLECTON_NAME,

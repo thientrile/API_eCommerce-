@@ -9,12 +9,12 @@ const { deleteDocument } = require("./elasticsearch.service");
 class SkuService {
   // constructor() {}
 
-  static async updateSkuAmout( sku_id, amount ) {
+  static async updateSkuAmout(sku_id, amount) {
     if (!amount.price) {
       throw new Error("price is required");
     }
     return await skuModel.findOneAndUpdate(
-     { sku_id },
+      { sku_id },
       {
         sku_amount: amount,
         $inc: {
@@ -37,11 +37,11 @@ class SkuService {
       { is_deleted: true },
       { new: true }
     );
-    const list_sku = await skuModel.find({ spu_id });
+    // const list_sku = await skuModel.find({ spu_id });
     // delete all product exist by id in elasticsearch
-    list_sku.forEach(async (sku) => {
-      await deleteDocument({ index: indexElastic, id: sku.sku_id });
-    });
+    // list_sku.forEach(async (sku) => {
+    //   await deleteDocument({ index: indexElastic, id: sku.sku_id });
+    // });
     let result = [];
     for (let sku of payload) {
       sku.sku_default = sku_default;
@@ -72,13 +72,31 @@ class SkuService {
           "_id",
           "sku_default",
           "sku_sort",
-          "sku_shopId"
+          "sku_shopId",
         ],
         object: resultSku.toJSON(),
       });
       result.push(resultOmit);
     }
 
+    return result;
+  }
+  static async getSkuBySpuId(spu_id) {
+    const result = (await skuModel.find({ spu_id }).exec()).map((sku) => {
+      return omitInfoData({
+        fields: [
+          "spu_id",
+          "is_deleted",
+          "createdAt",
+          "updatedAt",
+          "_id",
+          "sku_default",
+          "sku_sort",
+          "sku_shopId",
+        ],
+        object: sku.toObject(),
+      });
+    });
     return result;
   }
 }

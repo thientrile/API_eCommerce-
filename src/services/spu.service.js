@@ -11,6 +11,8 @@ const {
   randomId,
   convertToObjectIdMongoose,
   getInfoData,
+  filterConvert,
+  createJoiSchemaFromMongoose,
 } = require("../utils");
 const { checkUserExistById } = require("../repositories/user.repo");
 const { brandCheckExistById } = require("../repositories/brand.repo");
@@ -21,9 +23,14 @@ const {
   updateByQueryDocument,
   searchDocument,
 } = require("./elasticsearch.service");
-const spuModel = require("../models/spu.model");
+
+const Joi = require("joi");
 const index = "product_v001";
 class SpuService {
+  
+  static getShema(){
+    return createJoiSchemaFromMongoose(SpuModel,"spu_");
+  }
   /**
    * Edits an SPU (Single Product Unit) with the provided user ID and payload.
    * If the SPU ID does not exist, a new SPU is created.
@@ -56,7 +63,11 @@ class SpuService {
       );
     }
     const arrStatus = SpuModel.schema.path("spu_status").enumValues;
-    if (!payload.status || payload.status === "block"||!arrStatus.includes(payload.status)) {
+    if (
+      !payload.status ||
+      payload.status === "block" ||
+      !arrStatus.includes(payload.status)
+    ) {
       payload.status = "draft";
     }
     const filter = permission.filter(payload);
@@ -73,7 +84,10 @@ class SpuService {
     }
 
     if (payload.brand._id) {
+      
       const checkBrandExist = await brandCheckExistById(payload.brand._id);
+     
+      
       if (!checkBrandExist) {
         throw new BadRequestError("Brand not found");
       }
@@ -84,9 +98,10 @@ class SpuService {
     filter.status = payload.status === "active" ? payload.status : "draft";
 
     // Validate list_sku
-    if (payload.list_sku.length < 1) {
+    if (!payload.id&&payload.list_sku.length === 0) {
       throw new BadRequestError("The list_sku is not blank");
     }
+   
     // create a new spu if spu_id is not exist
     // update spu if spu_id is exist
     const resultSpu = await SpuModel.findOneAndUpdate(
@@ -112,30 +127,30 @@ class SpuService {
     };
 
     // ... (your Elasticsearch sync logic here)
-    resultSku.forEach(async (sku) => {
-      let sku_name = "";
+    // resultSku.forEach(async (sku) => {
+    //   let sku_name = "";
 
-      for (let i = 0; i < resultSpu.spu_variations.length; i++) {
-        sku_name += ` ${
-          resultSpu.spu_variations[i].options[sku.sku_tier_idx[i]]
-        }`;
-      }
-      const name = `${resultSpu.spu_name} ${sku_name}`;
-      await addDocument({
-        index,
-        id: sku.sku_id,
-        payload: {
-          name,
-          product_shopId: userId,
-          prodduct_id: resultSpu.spu_id,
-          product_name: resultSpu.spu_name,
-          price: sku.sku_amout.price,
-          thumbnail: sku.sku_thumb ? sku.sku_thumb : resultSpu.spu_thumb,
-          status: resultSpu.spu_status,
-          stock: sku.sku_inventory.quantity || 0,
-        },
-      });
-    });
+    //   for (let i = 0; i < resultSpu.spu_variations.length; i++) {
+    //     sku_name += ` ${
+    //       resultSpu.spu_variations[i].options[sku.sku_tier_idx[i]]
+    //     }`;
+    //   }
+    //   const name = `${resultSpu.spu_name} ${sku_name}`;
+    //   await addDocument({
+    //     index,
+    //     id: sku.sku_id,
+    //     payload: {
+    //       name,
+    //       product_shopId: userId,
+    //       prodduct_id: resultSpu.spu_id,
+    //       product_name: resultSpu.spu_name,
+    //       price: sku.sku_amout.price,
+    //       thumbnail: sku.sku_thumb ? sku.sku_thumb : resultSpu.spu_thumb,
+    //       status: resultSpu.spu_status,
+    //       // stock: sku.sku_inventory.quantity || 0,
+    //     },
+    //   });
+    // });
     // Return response object
     return result;
   }
@@ -164,7 +179,6 @@ class SpuService {
         "You don't have permission to perform this action"
       );
     }
-    
 
     const spu = await SpuModel.findOneAndUpdate(
       { spu_id: spuId, spu_shopId: convertToObjectIdMongoose(userId) },
@@ -192,6 +206,49 @@ class SpuService {
       fields: ["name", "id", "status"],
       object: removePrefixFromKeys(spu.toObject(), "spu_"),
     });
+  }
+  static async getListSeller(userId, status = "all", limit = 100, page = 1) {
+    const permission = await checkPermission(userId, "readOwn", "product");
+    if (!permission) {
+      throw new AuthFailureError(
+        "You don't have permission to perform this action"
+      );
+    }
+    const query = { spu_shopId: convertToObjectIdMongoose(userId) };
+    if (status !== "all") {
+      query.spu_status = status;
+    }
+    const result = await SpuModel.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+    return result.map((spu) => {
+      const resultSpu = removePrefixFromKeys(spu.toObject(), "spu_");
+
+      return filterConvert(
+        getInfoData({
+          fields: ["name", "thumb", "viewed", "selled","id","status"],
+          object: resultSpu,
+        }),
+        permission
+      );
+    });
+  }
+  static async getProductDetail(userId, spuId) {
+    const permission = await checkPermission(userId, "readAny", "product");
+    if (!permission) {
+      throw new AuthFailureError(
+        "You don't have permission to perform this action"
+      );
+    }
+
+    const spu = await SpuModel.findOneAndUpdate(
+      { spu_id: spuId },
+      { $inc: { spu_viewed: 1 } },
+      { new: true }
+    );
+    const result= {...removePrefixFromKeys(spu.toObject(), "spu_"),list_sku: await SkuService.getSkuBySpuId(spuId)}
+    return filterConvert(result, permission);
   }
 }
 

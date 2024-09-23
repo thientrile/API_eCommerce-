@@ -10,6 +10,7 @@ const {
 const { BadRequestError } = require("../core/error.response");
 const { grantAccess } = require("../middlewares/rbac.middleware");
 const roleRepo = require("../repositories/role.repo");
+const { setData } = require("./redis.service");
 
 // Create Resource
 async function createResource({ name, slug, description, userId }) {

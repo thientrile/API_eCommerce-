@@ -10,6 +10,7 @@
 "use strict";
 const _ = require("lodash");
 const { Types } = require("mongoose");
+const Joi = require("joi");
 /**
  * Retrieves specified fields from an object.
  *
@@ -144,14 +145,11 @@ const renameObjectKey = (field, obj) => {
  * @param {string} [message=""] - The default error message.
  * @returns {string} - The error message.
  */
-const getErrorMessageMongose = (error, model, message = "") => {
-  const obj = Object.keys(model.schema.obj);
+const getErrorMessageMongose = (error, message = "") => {
   if (error.errors) {
-    const path = obj.find(
-      (k) => typeof error.errors[k]?.properties.message !== "undefined"
-    );
-
-    return error.errors[path].properties.message;
+    for (const key in error.errors) {
+      return error.errors[key]?.properties.message;
+    }
   }
   return message;
 };
@@ -252,7 +250,7 @@ function findAndConvertObjectIds(doc) {
     return doc.map(findAndConvertObjectIds); // Xử lý mảng
   }
 
-  if (typeof doc === 'object' && doc !== null) {
+  if (typeof doc === "object" && doc !== null) {
     for (const key in doc) {
       doc[key] = findAndConvertObjectIds(doc[key]); // Duyệt qua các thuộc tính
     }
@@ -260,7 +258,93 @@ function findAndConvertObjectIds(doc) {
 
   return doc;
 }
+const filterConvert = (data, grant) => {
+  for (const key in data) {
+    
+    if (data[key] instanceof Types.ObjectId) {
+      data[key] = data[key].toString();
+    } else if (Array.isArray(data[key])) {
+      // Nếu là mảng, xử lý từng phần tử
+      data[key] = data[key].map((item) =>
+        typeof item === "object" && item !== null
+          ? filterConvert(item, grant)
+          : item.toString()
+      );
+    } else if (typeof data[key] === "object" && data[key] !== null) {
+      // Nếu là object, đệ quy xử lý
+      for (const k in data[key]) {
+        if (data[key][k] instanceof Types.ObjectId) {
+          data[key][k] = data[key][k].toString();
+        }
+      }
+    }
+  }
+
+  return grant.filter(data);
+};
+
+function createJoiSchemaFromMongoose(model, prefix = "") {
+  const mongooseSchema = model.schema; // Lấy schema từ model
+
+  const joiSchemaDefinition = {};
+
+  for (const key in mongooseSchema.obj) {
+    const field = mongooseSchema.obj[key];
+    let joiField;
+    switch (field.type) {
+      case String:
+        joiField = Joi.string();
+        break;
+      case Number:
+        joiField = Joi.number();
+        break;
+      case Boolean:
+        joiField = Joi.boolean();
+        break;
+      case Date:
+        joiField = Joi.date();
+        break;
+      default:
+        joiField = Joi.any(); // Nếu không biết kiểu, mặc định là Joi.any()
+    }
+    if (field.required) {
+      joiField = joiField.required();
+    }
+    // // Kiểm tra các ràng buộc khác như min hoặc max (nếu có)
+    if (field.min) {
+      joiField = joiField.min(field.min[0]);
+    }
+    if (field.max) {
+      joiField = joiField.max(field.max[0]);
+    }
+    joiSchemaDefinition[key.slice(prefix.length)] = joiField;
+  }
+  return Joi.object(joiSchemaDefinition);
+}
+const getCurrency = (currency) => {
+  switch (currency) {
+    case "US":
+      return "USD";
+    case "GB":
+      return "GBP";
+    case "ID":
+      return "IDR";
+    case "TH":
+      return "THB";
+    case "MY":
+      return "MYR";
+    case "PH":
+      return "PHP";
+    case "VN":
+      return "VND";
+    case "SG":
+      return "SGD";
+    default:
+      return "VND";
+  }
+};
 module.exports = {
+  filterConvert,
   getInfoData,
   getSelectData,
   unGetSelectData,
@@ -276,5 +360,7 @@ module.exports = {
   addPrefixToKeys,
   removePrefixFromKeys,
   randomId,
-  findAndConvertObjectIds
+  findAndConvertObjectIds,
+  createJoiSchemaFromMongoose,
+  getCurrency
 };

@@ -2,7 +2,6 @@
 
 "use strict";
 
-const { uniq } = require("lodash");
 const { model, Schema } = require("mongoose");
 
 const DOCUMENT_NAME = "Role";
@@ -32,9 +31,7 @@ const roleSchema = new Schema(
         attributes: { type: String, default: "*" },
       },
     ],
-    rol_parentId: { type: Schema.Types.ObjectId, ref: DOCUMENT_NAME },
-    rol_left: { type: Number, default: 0 },
-    rol_right: { type: Number, default: 0 },
+    rol_parents: [{ _id: { type: Schema.Types.ObjectId, ref: DOCUMENT_NAME } }],
   },
   {
     timestamps: true,

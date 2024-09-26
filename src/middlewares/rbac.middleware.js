@@ -30,15 +30,13 @@ const initAccessControl = async () => {
     await setData("listRole", roles, 86400);
   }
 
-   roles.forEach((role) => {
+  roles.forEach((role) => {
     if (role.parent && role.grants > 0) {
       rbac.grant(role.parent).extend(role.name);
     }
   });
-
 };
 const grantAccess = async (userId, action, resourse) => {
-
   const roleName = (await getRoleNameByUserId(userId)).usr_role.rol_name;
 
   try {
@@ -65,9 +63,7 @@ const grantAccess = async (userId, action, resourse) => {
  * @returns {Promise<boolean|object>} - A promise that resolves to either the permission object if granted, or false if not granted.
  */
 const checkPermission = async (userId, action, resourse) => {
-
-
-  const roleName = (await getRoleNameByUserId(userId)).usr_role.rol_name;  
+  const roleName = (await getRoleNameByUserId(userId)).usr_role.rol_name;
   const permission = await rbac.can(roleName)[action](resourse);
   return permission.granted ? permission : null;
 };

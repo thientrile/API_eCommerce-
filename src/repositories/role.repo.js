@@ -104,28 +104,30 @@ const getGrants = async (limit, offset, search) => {
 const getListRole = async () => {
   return roleModel.aggregate([
     {
-      // Join with the Role collection to get parent details
+      $match: {
+        rol_status: "active",
+      },
+    },
+    {
+      $unwind: "$rol_parents",
+    },
+    {
       $lookup: {
-        from:"Roles", // Replace with the collection name storing roles
-        localField: "rol_parentId",
+        from: "Roles",
+        localField: "rol_parents._id",
         foreignField: "_id",
-        as: "parentRole",
+        as: "parent",
       },
     },
     {
-      // Unwind to ensure we work with individual parent documents
-      $unwind: {
-        path: "$parentRole",
-        preserveNullAndEmptyArrays: true, // Keep roles without a parent
-      },
+      $unwind: "$parent",
     },
     {
-      // Project the desired fields and replace rol_parentId with parent name
       $project: {
         name: "$rol_name",
+        parent: "$parent.rol_name",
         _id: 0,
-        parent: "$parentRole.rol_name", // Replace with parent's name
-        grants:{$size:"$rol_grants"}
+        grants: { $size: "$rol_grants" },
       },
     },
   ]);

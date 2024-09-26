@@ -75,7 +75,7 @@ async function resourceList({ userId, limit = 30, offset = 0, search = "" }) {
 }
 
 // Create Role
-async function createRole( payload, userId ) {
+async function createRole(payload, userId) {
   await grantAccess(userId, "createAny", "role");
 
   const checkExist = await RoleModel.findOne({
@@ -85,47 +85,12 @@ async function createRole( payload, userId ) {
   if (checkExist) {
     throw new BadRequestError("Role already exists");
   }
-  let rightValue;
-  if (payload.parentId) {
-    const parentRole = await RoleModel.findOne({
-      _id: convertToObjectIdMongoose(payload.parentId),
-    });
-    if (!parentRole) {
-      throw new Error("Parent role not found");
-    }
-    rightValue = parentRole.rol_right;
-    await RoleModel.updateMany(
-      {
-        rol_right: { $gte: rightValue },
-      },
-      {
-        $inc: { rol_right: 2 },
-      }
-    );
-    await RoleModel.updateMany(
-      {
-        rol_left: { $gt: rightValue },
-      },
-      {
-        $inc: { rol_left: 2 },
-      }
-    );
-  } else {
-    const maxRightValue = await RoleModel.findOne(
-      { rol_parentId: null },
-      "rol_right",
-      {
-        sort: { rol_right: -1 },
-      }
-    );
-    rightValue = maxRightValue ? maxRightValue.rol_right + 1 : 1;
-  }
-  payload.left = rightValue;
-  payload.right = rightValue + 1;
-  console.log("payload", payload);
+
   const data = addPrefixToKeys(payload, "rol_");
   console.log("data", data);
   const role = await RoleModel.create(data);
+  const roles = await roleRepo.getListRole();
+  await setData("listRole", roles, 86400);
   return removePrefixFromKeys(role.toObject(), "rol_");
 }
 
@@ -139,8 +104,8 @@ async function addGrantsToRole({ userId, arr }) {
       { $push: { rol_grants: grants } } // Use $push to add elements to array
     );
   }
-   const result= await roleRepo.getAllGrants()
-   await setData("grants", result, 86400);
+  const result = await roleRepo.getAllGrants();
+  await setData("grants", result, 86400);
   return result;
 }
 
@@ -152,9 +117,7 @@ async function listGrants({ userId = 0, limit = 30, offset = 0, search = "" }) {
   return await roleRepo.getGrants(limit, offset, search);
 }
 // get all list role
-const getListAllRole= async ({userId, parentId=null})=>{
-  
-}
+const getListAllRole = async ({ userId, parentId = null }) => {};
 module.exports = {
   resourceList,
   createResource,

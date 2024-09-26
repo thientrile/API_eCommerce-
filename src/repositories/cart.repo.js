@@ -1,8 +1,8 @@
 "use strict"
-const Cart = require("../models/cart.model");
+const CartModel = require("../models/cart.model");
 
 const checkExistingCart = async (filter) => {
-    return await Cart.findOne(filter).exec();
+    return await CartModel.findOne(filter).exec();
 }
 
 module.exports = {checkExistingCart};

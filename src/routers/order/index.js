@@ -7,10 +7,14 @@ const {
   getAllProductBydiscountCode,
   GetAllDiscountCodeByShop,
   GetAmoutAfterDiscount,
+  CrlAddToCart,
+  CtrlGetCartByUser,
 } = require("../../controllers/order.controller");
 router.use(authertication);
 router.post("/discount/_new", asyncHandler(newDiscount));
 router.get("/discount/_product", asyncHandler(getAllProductBydiscountCode));
 router.get("/discount/_code", asyncHandler(GetAllDiscountCodeByShop));
 router.post("/discount/_amout", asyncHandler(GetAmoutAfterDiscount));
+router.patch("/cart/_addto", asyncHandler(CrlAddToCart));
+router.get("/cart/_into", asyncHandler(CtrlGetCartByUser));
 module.exports = router;

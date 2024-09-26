@@ -5,16 +5,13 @@ const COLLECTION_NAME = "Carts";
 const cartSchema = new Schema(
   {
     cart_userId: { type: Schema.Types.ObjectId, ref: "User" },
-    cart_item: [
+    cart_items: [
       {
         shopId: { type: Schema.Types.ObjectId, ref: "User" },
         products: [
           {
-            spu_id: { Type: String },
-            sku_id: { Type: String },
-            quantity: { Type: Number },
-            name: { Type: String },
-            thumbnail: { Type: String },
+            sku_id: { type: String },
+            quantity: { type: Number, default: 0 },
           },
         ],
       },
@@ -24,6 +21,7 @@ const cartSchema = new Schema(
       default: "active",
       enum: ["active", "completed", "pending", "failed"],
     },
+    cart_deleted_items: { type: Array, default: [] },
     cart_count: { type: Number, default: 0 },
   },
   {

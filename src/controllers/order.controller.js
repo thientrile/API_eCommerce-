@@ -1,6 +1,11 @@
 "use strict";
 const { SuccessReponse, CREATED } = require("../core/success.response");
 const {
+  addToCart,
+  updateQuantityCart,
+  getListUserCart,
+} = require("../services/cart.service");
+const {
   createDiscount,
   getAllDiscountsCodeWithProducts,
   getAllDiscountCodeByShop,
@@ -31,9 +36,24 @@ const GetAmoutAfterDiscount = async (req, res, next) => {
     metadata: await getAmoutDiscountCode(req.user._id, req.body),
   }).send(res);
 };
+
+const CrlAddToCart = async (req, res, next) => {
+  new SuccessReponse({
+    message: "Cart Updated successfully",
+    metadata: await addToCart(req.user._id, req.body),
+  }).send(res);
+};
+const CtrlGetCartByUser = async (req, res, next) => {
+  new SuccessReponse({
+    message: "Get cart of user successfully",
+    metadata: await getListUserCart(req.user._id),
+  }).send(res);
+};
 module.exports = {
   newDiscount,
   getAllProductBydiscountCode,
   GetAllDiscountCodeByShop,
-  GetAmoutAfterDiscount
+  GetAmoutAfterDiscount,
+  CrlAddToCart,
+  CtrlGetCartByUser,
 };

@@ -19,7 +19,6 @@ const { checkDiscountExist } = require("../repositories/discount.repo");
 const { checkSkuExist, getListSkus } = require("../repositories/sku.repo");
 const skuModel = require("../models/sku.model");
 const { setData, getData } = require("./redis.service");
-const DiscValidation = createJoiSchemaFromMongoose(discountModel, "disc_");
 
 /**
  * Creates a discount for a user.
@@ -298,7 +297,7 @@ const getListSkuIdsOfDiscount = async (data) => {
           .select({ sku_id: 1 })
       ).map((sku) => sku.sku_id);
     }
-    await setData("disc_" + data.disc_code, discountSkuIds,60);
+    await setData("disc_" + data.disc_code, discountSkuIds, 60);
     return discountSkuIds;
   }
   return resultRedis;
@@ -412,7 +411,7 @@ const getAmoutDiscountCode = async (userId, data) => {
     items: resultProducts,
     discount_code: code,
     totalOrder,
-    discount: amount,
+    discountAmout: amount,
     total: totalOrder - amount,
     currency: getCurrency(min_order.currency),
   };

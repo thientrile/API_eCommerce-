@@ -36,10 +36,10 @@ const authertication = async (req, res, next) => {
     //check clientID
     const clientId = req.headers[HEADERS.CLIENT_ID];
     //get accecess token
-    if (!clientId) throw new AuthFailureError(" Invalid client");
+    if (!clientId) throw new AuthFailureError("Token has expired");
     const keyStore = await findByClientId(clientId);
 
-    if (!keyStore) throw new AuthFailureError(" Invalid client");
+    if (!keyStore) throw new AuthFailureError("Token has expired");
     const userId = keyStore.tk_userId.valueOf();
     // verify refresh token
     const refreshToken = req.headers[HEADERS.REFRESHTOKEN];
@@ -62,7 +62,7 @@ const authertication = async (req, res, next) => {
     }
     // verify acccesstoken
     const accessToken = req.headers[HEADERS.AUTHORIZATION];
-    if (!accessToken) throw new AuthFailureError(" Invalid Token");
+    if (!accessToken) throw new AuthFailureError("Invalid Token");
 
     return JWT.verify(accessToken, keyStore.tk_publicKey, (err, decoded) => {
       if (err) {

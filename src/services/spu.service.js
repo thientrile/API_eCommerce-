@@ -27,9 +27,8 @@ const {
 const Joi = require("joi");
 const index = "product_v001";
 class SpuService {
-  
-  static getShema(){
-    return createJoiSchemaFromMongoose(SpuModel,"spu_");
+  static getShema() {
+    return createJoiSchemaFromMongoose(SpuModel, "spu_");
   }
   /**
    * Edits an SPU (Single Product Unit) with the provided user ID and payload.
@@ -84,10 +83,8 @@ class SpuService {
     }
 
     if (payload.brand._id) {
-      
       const checkBrandExist = await brandCheckExistById(payload.brand._id);
-     
-      
+
       if (!checkBrandExist) {
         throw new BadRequestError("Brand not found");
       }
@@ -98,10 +95,10 @@ class SpuService {
     filter.status = payload.status === "active" ? payload.status : "draft";
 
     // Validate list_sku
-    if (!payload.id&&payload.list_sku.length === 0) {
+    if (!payload.id && payload.list_sku.length === 0) {
       throw new BadRequestError("The list_sku is not blank");
     }
-   
+
     // create a new spu if spu_id is not exist
     // update spu if spu_id is exist
     const resultSpu = await SpuModel.findOneAndUpdate(
@@ -227,7 +224,7 @@ class SpuService {
 
       return filterConvert(
         getInfoData({
-          fields: ["name", "thumb", "viewed", "selled","id","status"],
+          fields: ["name", "thumb", "viewed", "selled", "id", "status"],
           object: resultSpu,
         }),
         permission
@@ -247,7 +244,10 @@ class SpuService {
       { $inc: { spu_viewed: 1 } },
       { new: true }
     );
-    const result= {...removePrefixFromKeys(spu.toObject(), "spu_"),list_sku: await SkuService.getSkuBySpuId(spuId)}
+    const result = {
+      ...removePrefixFromKeys(spu.toObject(), "spu_"),
+      list_sku: await SkuService.getSkuBySpuId(spuId),
+    };
     return filterConvert(result, permission);
   }
 }

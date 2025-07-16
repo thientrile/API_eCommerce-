@@ -1,37 +1,59 @@
-"use strict";
+/** @format */
 
-const { version } = require("os");
+'use strict';
+
+const { version } = require('os');
 
 const dev = {
-  app: {
-    port: process.env.DEV_APP_PORT || 3055,
-    name: process.env.DEV_API_NAME || "dev-api",
-    version: process.env.DEV_API_VERSION || "V1",
-  },
-  db: {
-    host: process.env.DEV_DB_HOST || "localhost",
-    port: process.env.DEV_DB_PORT || 27017,
-    name: process.env.DEV_DB_NAME || "shopDev",
-  }
-  ,
-  // elastichsearch:{
-    
-  // }
+	app: {
+		port: process.env.DEV_APP_PORT || 3055,
+		name: process.env.DEV_API_NAME || 'dev-api',
+		version: process.env.DEV_API_VERSION || 'V1'
+	},
+	db: {
+		host: process.env.DEV_DB_HOST || 'localhost',
+		port: process.env.DEV_DB_PORT || 27017,
+		name: process.env.DEV_DB_NAME || 'shopDev'
+	}
+	// elastichsearch:{
+
+	// }
+};
+const development = {
+	app: {
+		port: process.env.DEV_APP_PORT || 3055,
+		name: process.env.DEV_API_NAME || 'dev-api',
+		version: process.env.DEV_API_VERSION || 'V1'
+	},
+	db: {
+		mongo: {
+			host: 'localhost',
+			port: 27017,
+			name: 'shopDev'
+		},
+		redis: {
+			host: 'localhost',
+			port: 6379
+		}
+	}
+
 };
 
 const pro = {
-  app: {
-    port: process.env.PRO_AP_PORT || 3000,
-    name: process.env.PRO_API_NAME || "pro-api",
-    version: process.env.PRO_API_VERSION || "V1",
-  },
-  db: {
-    host: process.env.PRO_DB_HOST || "localhost",
-    port: process.env.PRO_DB_PORT || "27017",
-    name: process.env.PRO_DB_NAME || "shopPro",
-  },
+	app: {
+		port: process.env.PRO_AP_PORT || 3000,
+		name: process.env.PRO_API_NAME || 'pro-api',
+		version: process.env.PRO_API_VERSION || 'V1'
+	},
+	db: {
+		host: process.env.PRO_DB_HOST || 'localhost',
+		port: process.env.PRO_DB_PORT || '27017',
+		name: process.env.PRO_DB_NAME || 'shopPro'
+	}
 };
-const config = { pro, dev };
-const env = process.env.NODE_ENV || "dev";
+const config = { pro, dev, development };
+const env = process.env.NODE_ENV || 'development';
+
+
 
 module.exports = config[env];

@@ -9,7 +9,7 @@ const {
 const brandModel = require("../models/brand.model");
 const createBrand = async (userId, payload) => {
   //check middleware permission
-  const permission = await checkPermission(userId, "createOwn", "brand");
+  const permission = await checkPermission(userId, "createOwn", "Brands");
   if (!permission) {
     throw new AuthFailureError("You do not have permission to create brand");
   }
@@ -36,7 +36,7 @@ const createBrand = async (userId, payload) => {
  * @throws {AuthFailureError} - If the user does not have permission to read brands.
  */
 const brandList = async (userId, limit, offset, search, cate_id) => {
-  const permission = await checkPermission(userId, "readOwn", "brand");
+  const permission = await checkPermission(userId, "readOwn", "Brands");
   if (!permission) {
     throw new AuthFailureError("You do not have permission to read brand");
   }

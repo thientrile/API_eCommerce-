@@ -1,16 +1,20 @@
-"use strict";
+/** @format */
 
-const keytokenModel = require("../models/keytoken.model");
+'use strict';
+
+const keytokenModel = require('../models/keytoken.model');
+const { randomUUID } = require('crypto');
 const {
-  getErrorMessageMongose,
-  converToUUIDMongoose,
-  convertToObjectIdMongoose,
-} = require("../utils/index");
+	getErrorMessageMongose,
+	converToUUIDMongoose,
+	convertToObjectIdMongoose
+} = require('../utils/index');
 const {
-  tk_findOne,
-  tk_deleteOne,
-  tk_updateOne,
-} = require("../repositories/keyToken.repo");
+	tk_findOne,
+	tk_deleteOne,
+	tk_updateOne
+} = require('../repositories/keyToken.repo');
+const { setData } = require('./redis.service');
 /**
  *
  * @param {String} userId
@@ -22,32 +26,31 @@ const {
  */
 
 const createKeyToken = async ({ userId, publicKey }) => {
-  const tokens = await keytokenModel.create({
-    tk_userId: userId,
-    tk_publicKey: publicKey,
-    tk_refreshTokensUsed: [],
-  });
+	const tokens = await keytokenModel.create({
+		tk_userId: userId,
+		tk_publicKey: publicKey
+	});
 
-  return tokens ? { clientId: tokens.tk_clientId } : null;
+	return tokens ? { clientId: tokens.tk_clientId } : null;
 };
 
 const findByClientId = async (clientId) => {
-  return tk_findOne({ tk_clientId: converToUUIDMongoose(clientId) });
+	return tk_findOne({ tk_clientId: converToUUIDMongoose(clientId) });
 };
 const deleteByClientId = async (clientId) => {
-  return tk_deleteOne({ tk_clientId: converToUUIDMongoose(clientId) });
+	return tk_deleteOne({ tk_clientId: converToUUIDMongoose(clientId) });
 };
 const updateById = async (id, data) => {
-  return tk_updateOne(
-    {
-      _id: convertToObjectIdMongoose(id),
-    },
-    data
-  );
+	return tk_updateOne(
+		{
+			_id: convertToObjectIdMongoose(id)
+		},
+		data
+	);
 };
 module.exports = {
-  createKeyToken,
-  findByClientId,
-  deleteByClientId,
-  updateById,
+	createKeyToken,
+	findByClientId,
+	deleteByClientId,
+	updateById
 };

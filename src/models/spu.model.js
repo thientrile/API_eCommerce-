@@ -26,7 +26,7 @@ const spuSchema = new Schema(
 
     spu_shopId: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Shops",
     },
     spu_thumb: String,
     spu_images: {

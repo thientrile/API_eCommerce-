@@ -1,0 +1,26 @@
+[{
+  "_id": {
+    "$oid": "673f1cff178f3b5affe80bed"
+  },
+  "usr_email": "admin@ad.com",
+  "usr_name": "Thiên Trí Lê",
+  "usr_salt": "$2b$10$/K3sIB/C4o/zhnwn4eQViuhCwopwuUv9TCNZ2LSGmQtT9m6XrfOia",
+  "usr_sex": "0",
+  "usr_avatar": "https://res.cloudinary.com/dcplqohwd/image/upload/v1731322343/6679969c5cc33c4e7e9d0cd9/images/1731322295341976.jpg",
+  "usr_date_of_birth": {
+    "$date": "2003-04-04T00:00:00.000Z"
+  },
+  "usr_role": {
+    "$oid": "66a0cab57cce209f373f7cdc"
+  },
+  "usr_status": "active",
+  "createdAt": {
+    "$date": "2024-11-21T11:43:59.873Z"
+  },
+  "updatedAt": {
+    "$date": "2024-11-21T11:43:59.873Z"
+  },
+  "usr_slug": "admin",
+  "__v": 0,
+  "usr_id": 130
+}]

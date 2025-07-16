@@ -16,7 +16,11 @@ const {
 } = require("../utils");
 const spuModel = require("../models/spu.model");
 const { checkDiscountExist } = require("../repositories/discount.repo");
-const { checkSkuExist, getListSkus } = require("../repositories/sku.repo");
+const {
+  checkSkuExist,
+  getListSkus,
+  checkListSkusActive,
+} = require("../repositories/sku.repo");
 const skuModel = require("../models/sku.model");
 const { setData, getData } = require("./redis.service");
 
@@ -342,25 +346,30 @@ const getAmoutDiscountCode = async (userId, data) => {
   }
   //  get líst sku_id from products of dicount code
   let discountSkuIds = await getListSkuIdsOfDiscount(foundDiscount);
-
+  let totalOrder = 0;
   const skuIds = products.map((product) => product.sku_id);
   // get list of
-  const listSkus = await getListSkus(
-    {
-      sku_id: { $in: skuIds },
-      sku_shopId: convertToObjectIdMongoose(shopId),
-      is_deleted: false,
-    },
-    ["sku_id", "sku_amout"]
-  );
+  const listSkus = await checkListSkusActive(skuIds, shopId);
   //  create result have sku_id, price, quantity
   const resultProducts = listSkus.map((item) => {
     let result = {};
+    result.name = item.spu_name;
     result.sku_id = item.sku_id;
     result.price = item.sku_amout.price;
     result.currency = item.sku_amout.currency;
+    let options = "";
+    result.thumb = item.spu_thumb;
+    for (let idx in item.sku_tier_idx) {
+      if (item.spu_vatiants[idx].images[item.sku_tier_idx[idx]]) {
+        result.thumb = item.spu_vatiants[idx].images[item.sku_tier_idx[idx]];
+      }
+
+      options += item.spu_vatiants[idx].options[item.sku_tier_idx[idx]];
+    }
+    result.option = options;
     for (let i in products) {
       if (item.sku_id == products[i].sku_id) {
+        totalOrder += products[i].quantity * item.sku_amout.price;
         result.quantity = products[i].quantity;
         break;
       }
@@ -369,10 +378,9 @@ const getAmoutDiscountCode = async (userId, data) => {
   });
 
   //  check discount code have minimum order amount
-  let totalOrder = 0;
+
   let totalAmout = 0;
   for (let i in resultProducts) {
-    totalOrder += resultProducts[i].price * resultProducts[i].quantity;
     if (discountSkuIds.includes(resultProducts[i].sku_id)) {
       totalAmout += resultProducts[i].price * resultProducts[i].quantity;
     }
@@ -472,6 +480,121 @@ const cancelDiscountCode = async (userId, data) => {
   );
   return filterConvert(result, grants);
 };
+
+const getAmoutDiscountCodes = async (userId, data) => {
+  const { products, codes, shopId } = data;
+  let totalOrder = 0;
+  let totalAmount = 0;
+  const skuIds = products.map((product) => product.sku_id);
+  // get list of
+  const listSkus = await checkListSkusActive(skuIds, shopId);
+  //  create result have sku_id, price, quantity
+  const resultProducts = listSkus.map((item) => {
+    let result = {};
+    result.name = item.spu_name;
+    result.sku_id = item.sku_id;
+    result.price = item.sku_amout.price;
+    result.currency = item.sku_amout.currency;
+    let options = "";
+    result.thumb = item.spu_thumb;
+    for (let idx in item.sku_tier_idx) {
+      if (item.spu_vatiants[idx].images[item.sku_tier_idx[idx]]) {
+        result.thumb = item.spu_vatiants[idx].images[item.sku_tier_idx[idx]];
+      }
+
+      options += item.spu_vatiants[idx].options[item.sku_tier_idx[idx]];
+    }
+    result.option = options;
+    for (let i in products) {
+      if (item.sku_id == products[i].sku_id) {
+        totalOrder += products[i].quantity * item.sku_amout.price;
+        result.quantity = products[i].quantity;
+        break;
+      }
+    }
+    return result;
+  });
+
+  if (data.codes) {
+    const discountStatus = discountModel.schema.path("disc_status").enumValues;
+
+    // check discount code exist
+
+    const foundDiscounts = await discountModel.find({
+      disc_code: { $in: codes },
+      disc_shopId: convertToObjectIdMongoose(shopId),
+      disc_status: discountStatus[0],
+    });
+
+    for (const i of foundDiscounts) {
+      let discountSkuIds = await getListSkuIdsOfDiscount(i);
+      let totalAmout = 0;
+      for (let i in resultProducts) {
+        if (discountSkuIds.includes(resultProducts[i].sku_id)) {
+          totalAmout += resultProducts[i].price * resultProducts[i].quantity;
+        }
+      }
+      const {
+        type,
+        start_date,
+        end_date,
+        max_uses,
+        min_order,
+        max_uses_per_user,
+        users_used,
+        value,
+      } = removePrefixFromKeys(i.toObject(), "disc_");
+      //  check discount code is expired
+      if (
+        new Date() < new Date(start_date) ||
+        new Date() > new Date(end_date)
+      ) {
+        i.disc_status = "expired";
+        continue;
+      }
+      //  check discount code have uses of maximum
+      if (max_uses <= 0) {
+        i.disc_status = "expired";
+        continue;
+      }
+      //  check discount code have minimum order amount
+      if (min_order.value > 0 && totalOrder < min_order.value) {
+        continue;
+      }
+      // check if the discount code has been used by user
+      if (max_uses_per_user > 0) {
+        const countUserUsed = users_used.filter(
+          (user) => user == userId
+        ).length;
+        if (countUserUsed >= max_uses_per_user) {
+          continue;
+        }
+      }
+      const discountType = discountModel.schema.path("disc_type").enumValues;
+      let amount;
+      if (type === discountType[1]) {
+        if (totalAmout > 0) {
+          amount = value;
+        } else {
+          amount = 0;
+        }
+      } else {
+        amount = (totalAmout * value) / 100;
+      }
+      totalAmount += amount;
+    }
+  }
+
+  return {
+    shopId,
+    codes,
+    products: resultProducts,
+    total: totalOrder,
+    discount: totalAmount,
+    amount: totalOrder - totalAmount > 0 ? totalOrder - totalAmount : 0,
+  };
+};
+
 module.exports = {
   createDiscount,
   updateDiscountStauts,
@@ -479,4 +602,5 @@ module.exports = {
   getAllDiscountCodeByShop,
   cancelDiscountCode,
   getAmoutDiscountCode,
+  getAmoutDiscountCodes,
 };

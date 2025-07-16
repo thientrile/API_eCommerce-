@@ -1,22 +1,31 @@
-"use strict";
-const bcrypt = require("bcrypt");
-const userModel = require("../models/user.model");
-const { isValidation, getErrorMessageMongose } = require("../utils/index");
-const { generateKeyPairSync } = require("node:crypto");
-const { getId } = require("../repositories/role.repo");
-const { ForbiddenError } = require("../core/error.response");
+/** @format */
+
+'use strict';
+const bcrypt = require('bcrypt');
+const userModel = require('../models/user.model');
 const {
-  createKeyToken,
-  deleteByClientId,
-  findByClientId,
-  updateById,
-} = require("./keyToken.services");
-const { createTokenPair } = require("../auth/utils.auth");
+	isValidation,
+	getErrorMessageMongose,
+	omitInfoData,
+	removePrefixFromKeys,
+	addPrefixToKeys
+} = require('../utils/index');
+const { generateKeyPairSync } = require('node:crypto');
+const { getId } = require('../repositories/role.repo');
+const { ForbiddenError } = require('../core/error.response');
 const {
-  userDeleteById,
-  userFindByusername,
-} = require("../repositories/user.repo");
-const { AuthFailureError } = require("../core/error.response");
+	createKeyToken,
+	deleteByClientId,
+	findByClientId,
+	updateById
+} = require('./keyToken.services');
+const { createTokenPair } = require('../auth/utils.auth');
+const {
+	userDeleteById,
+	userFindByusername
+} = require('../repositories/user.repo');
+const { AuthFailureError } = require('../core/error.response');
+const { setData } = require('./redis.service');
 
 // refetch token
 /**
@@ -29,35 +38,37 @@ const { AuthFailureError } = require("../core/error.response");
  * @throws {AuthFailureError} - Throws an AuthFailureError if the refresh token has expired.
  */
 const handlerRefreshToken = async (keyStore, user, refreshToken) => {
-  const key = await findByClientId(keyStore.tk_clientId);  
-  const { publicKey, privateKey } = generateKeyPairSync("rsa", {
-    modulusLength: 4096,
-    publicKeyEncoding: {
-      type: "pkcs1",
-      format: "pem",
-    },
-    privateKeyEncoding: {
-      type: "pkcs1",
-      format: "pem",
-    },
-  });
-  const tokens = await createTokenPair(
-    { _id: user._id, slug: user.slug, role: user.role },
-    publicKey,
-    privateKey
-  );
-  return updateById(key._id, {
-    $addToSet: {
-      tk_refreshTokensUsed: refreshToken, // Mark as used,
-    },
-    tk_publicKey: publicKey,
+	const key = await findByClientId(keyStore.tk_clientId);
+	const { publicKey, privateKey } = generateKeyPairSync('rsa', {
+		modulusLength: 2048,
+		publicKeyEncoding: {
+			type: 'pkcs1',
+			format: 'pem'
+		},
+		privateKeyEncoding: {
+			type: 'pkcs1',
+			format: 'pem'
+		}
+	});
+	const [tokens] = await Promise.all([
+		createTokenPair(
+			{ _id: user._id, slug: user.slug, role: user.role },
+			publicKey,
+			privateKey
+		),
+		updateById(key._id, {
+			$push: {
+				tk_refreshTokensUsed: refreshToken // Mark as used,
+			},
+			tk_publicKey: publicKey,
+			expiresAt: Date.now() + 1209600000
+		})
+	]);
 
-    expiresAt: Date.now() + 1209600000,
-  }).then(() => ({
-    uniqueId: key.tk_clientId,
-    // username: user.username,
-    tokens,
-  }));
+	return {
+		uniqueId: key.tk_clientId,
+		tokens
+	};
 };
 
 //login user
@@ -72,54 +83,54 @@ const handlerRefreshToken = async (keyStore, user, refreshToken) => {
  * @throws {AuthFailureError} If there is an error deleting the user after a failed login attempt.
  */
 const login = async ({ username, password }) => {
-  const foundUser = await userFindByusername(username);
-  if (!foundUser) {
-    throw new AuthFailureError(" User is not signin");
-  }
-  const comparePassword = await bcrypt.compare(password, foundUser.usr_salt);
-  if (!comparePassword) {
-    throw new AuthFailureError(" Password is not correct");
-  }
-  //create public key and private key
-  const user = foundUser;
-  const { publicKey, privateKey } = generateKeyPairSync("rsa", {
-    modulusLength: 4096,
-    publicKeyEncoding: {
-      type: "pkcs1",
-      format: "pem",
-    },
-    privateKeyEncoding: {
-      type: "pkcs1",
-      format: "pem",
-    },
-  });
+	const user = await userFindByusername(username);
+	if (!user) {
+		throw new AuthFailureError(' User is not signin');
+	}
+	const comparePassword = await bcrypt.compare(password, user.usr_salt);
+	if (!comparePassword) {
+		throw new AuthFailureError(' Password is not correct');
+	}
 
-  //create token pair
 
-  const tokens = await createTokenPair(
-    {
-      _id: user._id,
-      username,
-      slug: user.usr_slug,
-      role: user.usr_role,
-    },
-    publicKey.toString(),
-    privateKey
-  );
+	const { publicKey, privateKey } = generateKeyPairSync('rsa', {
+		modulusLength: 2048,
+		publicKeyEncoding: {
+			type: 'pkcs1',
+			format: 'pem'
+		},
+		privateKeyEncoding: {
+			type: 'pkcs1',
+			format: 'pem'
+		}
+	});
 
-  return await createKeyToken({
-    userId: user._id,
-    publicKey: publicKey,
-  })
-    .then((result) => ({
-      uniqueId: result.clientId,
-      // username: username,
-      tokens,
-    }))
-    .catch((err) => {
-      userDeleteById(user._id);
-      throw new AuthFailureError(" Unable to login account");
-    });
+	//create token pair
+
+	const [result, tokens] = await Promise.all([
+		createKeyToken({
+			userId: user._id,
+			publicKey: publicKey
+		}),
+		createTokenPair(
+			{
+				_id: user._id,
+				username,
+				slug: user.usr_slug,
+				role: user.usr_role
+			},
+			publicKey.toString(),
+			privateKey
+		)
+	]);
+	if (!result) {
+		throw new AuthFailureError(' Unable to login account');
+	}
+
+	return {
+		uniqueId: result.clientId,
+		tokens
+	};
 };
 // Sign Up user
 /**
@@ -136,78 +147,79 @@ const login = async ({ username, password }) => {
  * @throws {ForbiddenError} If the username or email or phone number already exists.
  * @throws {AuthFailureError} If unable to create the account.
  */
-const signUP = async ({ name, sex, date, username, password, role }) => {
-  // hash the password
-  const passwordHash = await bcrypt.hash(password, 10);
-  // get role _id
-  const roleId = await getId(role === "user" ? "user" : "seller");
-  // check type username
-  let userData = {
-    usr_name: name,
-    usr_role: roleId,
-    usr_salt: passwordHash,
-    usr_sex: sex,
-    usr_date_of_birth: date,
-  };
+const signUP = async (payload) => {
+	// hash the password
+	const [passwordHash, roleId] = await Promise.all([
+		await bcrypt.hash(payload.password, 10),
+		await getId('1')
+	]);
 
-  if (isValidation.isEmail(username)) {
-    userData.usr_email = username;
-  } else if (isValidation.isPhoneNumber(username)) {
-    userData.usr_phone = username;
-  } else {
-    userData.usr_slug = username;
-  }
+	// check type username
+	payload.salt = passwordHash;
+	payload.role = roleId;
+	let userData = addPrefixToKeys(payload, 'usr_');
+	if (payload.username) {
+		const { username } = payload;
+		if (isValidation.isEmail(username)) {
+			userData.usr_email = username;
+		} else if (isValidation.isPhoneNumber(username)) {
+			userData.usr_phone = username;
+		} else {
+			userData.usr_slug = username;
+		}
+	}
 
-  const user = await userModel.create(userData).catch((err) => {
-    throw new ForbiddenError(
-      getErrorMessageMongose(
-        err,
+	const user = await userModel.create(userData).catch((err) => {
+		throw new ForbiddenError(
+			getErrorMessageMongose(
+				err,
 
-        " Username or email or phone number already exists"
-      )
-    );
-  });
-  //create public key and private key
+				' Username or email or phone number already exists'
+			)
+		);
+	});
+	//create public key and private key
 
-  const { publicKey, privateKey } = generateKeyPairSync("rsa", {
-    modulusLength: 4096,
-    publicKeyEncoding: {
-      type: "pkcs1",
-      format: "pem",
-    },
-    privateKeyEncoding: {
-      type: "pkcs1",
-      format: "pem",
-    },
-  });
+	const { publicKey, privateKey } = generateKeyPairSync('rsa', {
+		modulusLength: 2048,
+		publicKeyEncoding: {
+			type: 'pkcs1',
+			format: 'pem'
+		},
+		privateKeyEncoding: {
+			type: 'pkcs1',
+			format: 'pem'
+		}
+	});
 
-  //create token pair
-  const tokens = await createTokenPair(
-    { _id: user._id, username: username, slug: user.urs_slug, role: roleId },
-    publicKey.toString(),
-    privateKey
-  );
-
-  return await createKeyToken({
-    userId: user._id,
-    publicKey: publicKey,
-  })
-    .then((result) => ({
-      uniqueId: result.clientId,
-      // username: username,
-      tokens,
-    }))
-    .catch((err) => {
-      userDeleteById(user._id);
-      throw new AuthFailureError(" Unable to create account");
-    });
+	const [result, tokens] = await Promise.all([
+		createKeyToken({
+			userId: user._id,
+			publicKey: publicKey
+		}),
+		createTokenPair(
+			{ _id: user._id, slug: user.urs_slug, role: roleId },
+			publicKey.toString(),
+			privateKey
+		)
+	]);
+	if (!result) {
+		userDeleteById(user._id);
+		throw new AuthFailureError(' Unable to create account');
+	}
+	return {
+		uniqueId: result.clientId,
+		tokens
+	};
 };
 // logout
 const logout = async (keyStore) => {
-  return await deleteByClientId(keyStore.tk_clientId)
-    .then(() => 1)
-    .catch(() => {
-      throw new AuthFailureError(" Unable to logout account");
-    });
+	return await deleteByClientId(keyStore.tk_clientId)
+		.then(() => 1)
+		.catch(() => {
+			throw new AuthFailureError(' Unable to logout account');
+		});
 };
+
+
 module.exports = { signUP, login, handlerRefreshToken, logout };

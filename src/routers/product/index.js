@@ -18,6 +18,7 @@ const { asyncHandler } = require("../../helpers/asyncHandler");
 const { authertication } = require("../../auth/utils.auth");
 const { validateSchema } = require("../../middlewares/joi.middleware");
 const SpuService = require("../../services/spu.service");
+router.get("/_detail/:id", asyncHandler(getProductDetail));
 router.use(authertication);
 
 //category
@@ -32,5 +33,4 @@ router.post("/_new", asyncHandler(newProduct));
 router.put("/_edit/:id", asyncHandler(updateProduct));
 router.patch("/status/:id",asyncHandler(statusProduct));
 router.get("/_seller", asyncHandler(getlistSpuSeller));
-router.get("/_detail/:id", asyncHandler(getProductDetail));
 module.exports = router;

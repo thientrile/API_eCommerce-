@@ -14,6 +14,7 @@ const { checkExistWarehouse } = require("../repositories/warehouse.repo");
 
 const createWare = async (userId, data) => {
   const grant = await grantAccess(userId, "createOwn", "warehouse");
+  
   data.userId = userId;
   data.type = data.type ? data.type : "SALES_WAREHOUSE";
   data.effect_status = data.effect_status ? data.effect_status : "ACTIVE";

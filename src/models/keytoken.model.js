@@ -15,7 +15,7 @@ const KeyTokenSchema = new Schema(
       ref: "Users",
     },
     tk_clientId: {
-      type: "UUID",
+      type: Schema.Types.UUID,
       default: () => randomUUID(),
       unique: true,
       index: true,

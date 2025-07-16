@@ -1,0 +1,15 @@
+[{
+  "_id": {
+    "$oid": "66799573d907edd994701979"
+  },
+  "app_code": "58af4483430b7c0b5fadcbbb20c76a35",
+  "app_status": true,
+  "app_permissions": "777",
+  "createdAt": {
+    "$date": "2024-06-24T15:49:14.360Z"
+  },
+  "updatedAt": {
+    "$date": "2024-06-24T15:49:14.360Z"
+  },
+  "__v": 0
+}]

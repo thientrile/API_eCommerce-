@@ -153,7 +153,7 @@ const getProductDetail= async (req,res,next)=>{
   new SuccessReponse({
     message: "Product detail",
     metadata: await spuService.getProductDetail(
-      req.user._id,
+
       req.params.id
     ),
   }).send(res);

@@ -343,6 +343,9 @@ const getCurrency = (currency) => {
       return "VND";
   }
 };
+const createMongoObjectId=()=>{
+  return new Types.ObjectId();
+}
 module.exports = {
   filterConvert,
   getInfoData,
@@ -362,5 +365,6 @@ module.exports = {
   randomId,
   findAndConvertObjectIds,
   createJoiSchemaFromMongoose,
-  getCurrency
+  getCurrency,
+  createMongoObjectId
 };

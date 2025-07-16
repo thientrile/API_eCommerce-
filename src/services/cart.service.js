@@ -15,6 +15,7 @@ const { checkSkuExist } = require("../repositories/sku.repo");
 const Joi = require("joi");
 
 const addToCart = async (userId, payload) => {
+ 
   //  validate payload
   const validatePayload = Joi.object({
     shopId: Joi.string().required(),
@@ -27,7 +28,7 @@ const addToCart = async (userId, payload) => {
   }
 
   //   check permission
-  const grants = await grantAccess(userId, "createOwn", "cart");
+  const grants = await grantAccess(userId, "createOwn", "Carts");
   const foundCart = await checkExistingCart({
     cart_userId: convertToObjectIdMongoose(userId),
     cart_state: "active",
@@ -106,7 +107,7 @@ const addToCart = async (userId, payload) => {
   }
 };
 const getListUserCart = async (userId) => {
-  const grants = await grantAccess(userId, "readOwn", "cart");
+  const grants = await grantAccess(userId, "readOwn", "Carts");
   const foundCart = await checkExistingCart({
     cart_userId: convertToObjectIdMongoose(userId),
     cart_state: "active",

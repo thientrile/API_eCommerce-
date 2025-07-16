@@ -14,14 +14,14 @@ const warehouseSchema = new Schema(
     ware_type: {
       type: String,
       required: [true, "The {PATH} field cannot be left blank"],
-      enum: ["SALES_WAREHOUSE", "RETURN_WAREHOUSE"],
+      enum: ["SALES_WAREHOUSE", "RETURN_WAREHOUSE", "RECEIVE_WAREHOUSE"],
     },
     ware_effect_status: {
       type: String,
       required: [true, "The {PATH} field cannot be left blank"],
       enum: ["ACTIVE", "INACTIVE"],
     },
-    ware_userId: { type: Schema.Types.ObjectId, ref: "Users" },
+    ware_shopId: { type: Schema.Types.ObjectId, ref: "Shops" },
     ware_is_default: { type: Boolean, default: false },
     ware_is_deleted: { type: Boolean, default: false },
     ware_address: {

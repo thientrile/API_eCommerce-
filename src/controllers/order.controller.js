@@ -5,6 +5,7 @@ const {
   updateQuantityCart,
   getListUserCart,
 } = require("../services/cart.service");
+const { checkoutReview, orderByUser } = require("../services/checkout.service");
 const {
   createDiscount,
   getAllDiscountsCodeWithProducts,
@@ -49,6 +50,18 @@ const CtrlGetCartByUser = async (req, res, next) => {
     metadata: await getListUserCart(req.user._id),
   }).send(res);
 };
+const CtrlCheckReviewOrder = async (req, res, next) => {
+  new SuccessReponse({
+    message: "Check review order",
+    metadata: await checkoutReview(req.user._id, req.body),
+  }).send(res);
+};
+const CtrlOrderByUser = async (req, res, next) => {
+  new SuccessReponse({
+    message: "Order by user",
+    metadata: await orderByUser(req.user._id, req.body),
+  }).send(res);
+};
 module.exports = {
   newDiscount,
   getAllProductBydiscountCode,
@@ -56,4 +69,6 @@ module.exports = {
   GetAmoutAfterDiscount,
   CrlAddToCart,
   CtrlGetCartByUser,
+  CtrlCheckReviewOrder,
+  CtrlOrderByUser,
 };

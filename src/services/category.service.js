@@ -21,7 +21,7 @@ const {
  */
 const createCategory = async (userId, payload) => {
   //check the middleware's permissions are admin
-  const permission = await grantAccess(userId, "createAny", "category");
+  const permission = await grantAccess(userId, "createAny", "Categories");
   const checkExist = await cateogoryModel.findOne({
     cate_name: payload.name,
     cate_parentId: payload.parentId
@@ -96,7 +96,7 @@ const createCategory = async (userId, payload) => {
  */
 const editCategory = async (userId, payload) => {
   //check the middleware's permissions are admin
-  const permission = await grantAccess(userId, "updateAny", "category");
+  const permission = await grantAccess(userId, "updateAny", "Categories");
 
   //check the category is exist and update
   const category = await cateFindByIdAndUpdate(
@@ -128,7 +128,7 @@ const editCategory = async (userId, payload) => {
  */
 const categoryList = async (userId) => {
   //check the middleware's permissions
-  await grantAccess(userId, "readAny", "category");
+  await grantAccess(userId, "readAny", "Categories");
 
   //get all category
   const category = await cateogoryModel.aggregate([
@@ -152,7 +152,7 @@ const categoryList = async (userId) => {
 };
 // const delCategory= async (userId,payload)=>{
 //   //check the middleware's permissions
-//   const permission = await grantAccess(userId, "deleteAny", "category");
+//   const permission = await grantAccess(userId, "deleteAny", "Categories");
 //   if (!permission) {
 //     throw new AuthFailureError(
 //       "You dont have permission to perform this action"

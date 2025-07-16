@@ -56,7 +56,7 @@ const discountSchema = new Schema(
         enum: ["US", "GB", "ID", "TH", "MY", "PH", "VN", "SG"],
       },
     }, // minimum order amount to use this discount
-    disc_shopId: { type: Schema.Types.ObjectId, ref: "User" },
+    disc_shopId: { type: Schema.Types.ObjectId, ref: "Shops" },
     disc_status: {
       type: String,
       enum: ["active", "inactive", "expired", "deleted"],

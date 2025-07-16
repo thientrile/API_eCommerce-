@@ -7,6 +7,7 @@ const {
   handlerRefreshToken,
   logout,
 } = require("../services/access.service");
+const { getUserInfoById, getUserInfo } = require("../services/user.service");
 
 const signup = async (req, res, next) => {
 
@@ -26,7 +27,8 @@ const refretshToken = async (req, res, next) => {
     message: "User refretsh token successfully",
     metadata: await handlerRefreshToken(
       req.keyStore,
-      req.user
+      req.user,
+      req.refreshToken
     ),
   }).send(res);
 };
@@ -37,9 +39,23 @@ const logOut = async (req, res, next) => {
     metadata: await logout(req.keyStore),
   }).send(res);
 };
+const ctrGetInfobyid= async (req,res)=>{
+  new SuccessReponse({
+    message: "User info successfully", 
+    metadata: await getUserInfoById(req.user._id, req.params.id||0),
+  }).send(res);
+}
+const ctrGetInfo= async (req,res)=>{
+  new SuccessReponse({
+    message: "User info successfully", 
+    metadata: await getUserInfo(req.user._id),
+  }).send(res);
+}
 module.exports = {
   signup,
   logIn,
   refretshToken,
   logOut,
+  ctrGetInfobyid,
+  ctrGetInfo
 };

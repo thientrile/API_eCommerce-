@@ -1,0 +1,192 @@
+[{
+  "_id": {
+    "$oid": "66a0cab57cce209f373f7cdc"
+  },
+  "rol_name": "admin",
+  "rol_slug": "100000000000000",
+  "rol_status": "active",
+  "rol_description": "",
+  "rol_grants": [
+    {
+      "actions": [
+        "read:any",
+        "create:any",
+        "delete:any",
+        "update:any"
+      ],
+      "attributes": "*",
+      "resourceId": {
+        "$oid": "6679986bbee15b5ee8cb0365"
+      }
+    },
+    {
+      "resourceId": {
+        "$oid": "667997b2bee15b5ee8cb0363"
+      },
+      "actions": [
+        "read:any",
+        "update:any",
+        "delete:any",
+        "create:any"
+      ],
+      "attributes": "*"
+    },
+    {
+      "resourceId": {
+        "$oid": "66799dc7cbe98ac565092c6c"
+      },
+      "actions": [
+        "update:any",
+        "read:any",
+        "create:any",
+        "delete:any"
+      ],
+      "attributes": "*,!left,!right,!rootId",
+      "_id": {
+        "$oid": "66799f0ccbe98ac565092c8f"
+      }
+    },
+    {
+      "resourceId": {
+        "$oid": "66799ddacbe98ac565092c73"
+      },
+      "actions": [
+        "update:any",
+        "delete:any"
+      ],
+      "attributes": "*",
+      "_id": {
+        "$oid": "668abb89a1b12aa18bd7fe1e"
+      }
+    },
+    {
+      "resourceId": {
+        "$oid": "66799e06cbe98ac565092c7a"
+      },
+      "actions": [
+        "update:any"
+      ],
+      "attributes": "status",
+      "_id": {
+        "$oid": "66d04bd2391db584a7d5d494"
+      }
+    }
+  ],
+  "updatedAt": {
+    "$date": "2024-08-29T10:22:10.898Z"
+  },
+  "rol_parents": []
+},
+{
+  "_id": {
+    "$oid": "66a0cb77e5967ef85f39e30e"
+  },
+  "rol_name": "seller",
+  "rol_status": "active",
+  "rol_description": "extend from user",
+  "rol_grants": [
+    {
+      "resourceId": {
+        "$oid": "66799e06cbe98ac565092c7a"
+      },
+      "actions": [
+        "update:own",
+        "read:own",
+        "create:own"
+      ],
+      "attributes": "*",
+      "_id": {
+        "$oid": "66a0cf545116b4fd19e0c8f8"
+      }
+    },
+    {
+      "resourceId": {
+        "$oid": "66799ddacbe98ac565092c73"
+      },
+      "actions": [
+        "read:own",
+        "create:own"
+      ],
+      "attributes": "*",
+      "_id": {
+        "$oid": "66d03d94d7710ab23caf69a6"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2024-07-24T09:37:59.057Z"
+  },
+  "updatedAt": {
+    "$date": "2024-08-29T10:20:46.276Z"
+  },
+  "rol_slug": "rui17218138790576",
+  "__v": 0,
+  "rol_parents": [
+    {
+      "_id": {
+        "$oid": "66a0cab57cce209f373f7cdc"
+      }
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "66a0cea15116b4fd19e0c8e9"
+  },
+  "rol_name": "user",
+  "rol_status": "active",
+  "rol_description": " user",
+  "rol_grants": [
+    {
+      "resourceId": {
+        "$oid": "674031ef029d006d514503be"
+      },
+      "actions": [
+        "read:any"
+      ],
+      "attributes": "*,!_id,!role,!salt",
+      "_id": {
+        "$oid": "674039ab8bdbfe6e6255480d"
+      }
+    },
+    {
+      "resourceId": {
+        "$oid": "674031ef029d006d514503be"
+      },
+      "actions": [
+        "update:own"
+      ],
+      "attributes": "*,_id,id",
+      "_id": {
+        "$oid": "674039ab8bdbfe6e6255480e"
+      }
+    },
+    {
+      "resourceId": {
+        "$oid": "674031ef029d006d514503be"
+      },
+      "actions": [
+        "read:own"
+      ],
+      "attributes": "*,!_i,!salt",
+      "_id": {
+        "$oid": "67434301379e20572d74890a"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2024-07-24T09:51:29.051Z"
+  },
+  "updatedAt": {
+    "$date": "2024-11-24T15:15:13.360Z"
+  },
+  "rol_slug": "rui17218146890521",
+  "__v": 0,
+  "rol_parents": [
+    {
+      "_id": {
+        "$oid": "66a0cb77e5967ef85f39e30e"
+      }
+    }
+  ]
+}]

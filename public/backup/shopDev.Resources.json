@@ -1,0 +1,91 @@
+[{
+  "_id": {
+    "$oid": "667997b2bee15b5ee8cb0363"
+  },
+  "src_name": "role",
+  "src_description": "",
+  "src_slug": "1000000000"
+},
+{
+  "_id": {
+    "$oid": "6679986bbee15b5ee8cb0365"
+  },
+  "src_name": "resource",
+  "src_description": "",
+  "src_slug": "1000000001"
+},
+{
+  "_id": {
+    "$oid": "66799dc7cbe98ac565092c6c"
+  },
+  "src_name": "category",
+  "src_slug": "sui1719246279555",
+  "src_description": "",
+  "createdAt": {
+    "$date": "2024-06-24T16:24:39.554Z"
+  },
+  "updatedAt": {
+    "$date": "2024-06-24T16:24:39.554Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66799ddacbe98ac565092c73"
+  },
+  "src_name": "brand",
+  "src_slug": "sui1719246298234",
+  "src_description": "",
+  "createdAt": {
+    "$date": "2024-06-24T16:24:58.234Z"
+  },
+  "updatedAt": {
+    "$date": "2024-06-24T16:24:58.234Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66799e06cbe98ac565092c7a"
+  },
+  "src_name": "product",
+  "src_slug": "sui1719246342038",
+  "src_description": "",
+  "createdAt": {
+    "$date": "2024-06-24T16:25:42.038Z"
+  },
+  "updatedAt": {
+    "$date": "2024-06-24T16:25:42.038Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "672ae664e36173c459821f87"
+  },
+  "src_name": "apiKey",
+  "src_slug": "sui1730864740910",
+  "src_description": "admin create publich apiKey",
+  "createdAt": {
+    "$date": "2024-11-06T03:45:40.910Z"
+  },
+  "updatedAt": {
+    "$date": "2024-11-06T03:45:40.910Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "674031ef029d006d514503be"
+  },
+  "src_name": "profile",
+  "src_slug": "sui1732260335281",
+  "src_description": "read and edit info",
+  "createdAt": {
+    "$date": "2024-11-22T07:25:35.281Z"
+  },
+  "updatedAt": {
+    "$date": "2024-11-22T07:25:35.281Z"
+  },
+  "__v": 0
+}]

@@ -55,7 +55,7 @@ const handleEventConnect = ({ connectingRedis }) => {
 	});
 };
 
-const init = (optional = config.redis) => {
+const init = (optional = config.db.redis) => {
 	const instanceRedis = createClient(optional);
 	client.intanceConnect = instanceRedis;
 

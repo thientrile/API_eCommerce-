@@ -58,6 +58,7 @@ const pro = {
 };
 const config = { pro, dev, development };
 const env = process.env.NODE_ENV || 'development';
+console.log('NODE_ENV::: ',env);
 
 
 

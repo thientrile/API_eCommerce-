@@ -7,7 +7,7 @@ const cors = require('cors');
 require('dotenv').config();
 const express = require('express');
 const app = express();
-const httpServer = require('https').createServer(options,app);
+const httpServer = require('https').createServer(app);
 const io = require('socket.io')(httpServer);
 const morgan = require('morgan');
 const { default: helmet } = require('helmet');

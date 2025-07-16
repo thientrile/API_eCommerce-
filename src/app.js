@@ -1,11 +1,7 @@
 /** @format */
 
 'use script';
-const fs = require('fs');
-const options={
-	key:fs.readFileSync('./src/key.pem','utf8'),
-	cert:fs.readFileSync('./src/cert.pem','utf8')
-}
+
 const corsOptions=require('./utils/cors');
 const cors = require('cors');
 require('dotenv').config();

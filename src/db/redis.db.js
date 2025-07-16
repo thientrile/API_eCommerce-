@@ -3,7 +3,7 @@
 'use strict';
 
 const { createClient } = require('redis');
-const { db } = require('../configs/init.config');
+const config = require('../configs/init.config');
 
 const { promisify } = require('util');
 const { RedisErrorRespoint } = require('../core/error.response');
@@ -55,7 +55,7 @@ const handleEventConnect = ({ connectingRedis }) => {
 	});
 };
 
-const init = (optional = db.redis) => {
+const init = (optional = config.redis) => {
 	const instanceRedis = createClient(optional);
 	client.intanceConnect = instanceRedis;
 

@@ -14,6 +14,9 @@ const dev = {
 		host: process.env.DEV_DB_HOST || 'localhost',
 		port: process.env.DEV_DB_PORT || 27017,
 		name: process.env.DEV_DB_NAME || 'shopDev'
+	},
+	redis: {
+		url: process.env.REDIS_URL || 'redis://default:ROaBImRbyeUbvIbGSkghIWjFngGEKLHC@ballast.proxy.rlwy.net:50811'
 	}
 	// elastichsearch:{
 
@@ -32,8 +35,7 @@ const development = {
 			name: 'shopDev'
 		},
 		redis: {
-			host: 'localhost',
-			port: 6379
+			url: 'redis://default:ROaBImRbyeUbvIbGSkghIWjFngGEKLHC@ballast.proxy.rlwy.net:50811'
 		}
 	}
 
@@ -49,6 +51,9 @@ const pro = {
 		host: process.env.PRO_DB_HOST || 'localhost',
 		port: process.env.PRO_DB_PORT || '27017',
 		name: process.env.PRO_DB_NAME || 'shopPro'
+	},
+	redis: {
+		url: process.env.REDIS_URL || 'redis://default:ROaBImRbyeUbvIbGSkghIWjFngGEKLHC@ballast.proxy.rlwy.net:50811'
 	}
 };
 const config = { pro, dev, development };

@@ -4,17 +4,13 @@
 
 const mongoose = require('mongoose');
 const { countConnect } = require('../helpers/checkConnect.helpers');
-const { db } = require('../configs/init.config');
 
-const { host, name, port } = db.mongo;
-const httpString = `mongodb://${host}:${port}/${name}`;
 const username = encodeURIComponent('tori');
 const password = encodeURIComponent('Tori@12345');
 const clusterAddress = 'cluster0.tsw4h.mongodb.net';
 const databaseName = 'shopDev';
 
 const urlAtlas = `mongodb+srv://${username}:${password}@${clusterAddress}/${databaseName}?retryWrites=true&w=majority`;
-const nodeEnv = process.env.NODE_ENV || 'dev';
 class DatabaseClass {
 	constructor() {
 		this.connect();

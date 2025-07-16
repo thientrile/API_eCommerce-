@@ -8,6 +8,12 @@ const router = express.Router();
 
 const config = require('../configs/init.config');
 const link = `/${config.app.version}/${config.app.name}`;
+router.get('/health-check', (req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        message: 'Server is running'
+    });
+});
 router.use(apiKey);
 router.use(permission('admin'));
 router.use(`${link}/rbac`, require('./rbac'));

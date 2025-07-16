@@ -4,8 +4,15 @@
 
 const { createClient } = require('redis');
 const config = require('../configs/init.config');
+const { user, pass, host } = config.db.redis;
+const redisUser = encodeURIComponent(user);
+const redisPass = encodeURIComponent(pass);
 
-const { promisify } = require('util');
+
+
+
+const redisUrl = `redis://${redisUser}:${redisPass}@${host}`;
+
 const { RedisErrorRespoint } = require('../core/error.response');
 let client = {},
 	statusConnectRedis = {
@@ -55,28 +62,28 @@ const handleEventConnect = ({ connectingRedis }) => {
 	});
 };
 
-const init = (optional = config.db.redis) => {
-	const instanceRedis = createClient(optional);
-	client.intanceConnect = instanceRedis;
+const init = () => {
+  const instanceRedis = createClient({ url: redisUrl });
+  client.intanceConnect = instanceRedis;
 
-	handleEventConnect({
-		connectingRedis: instanceRedis
-	});
-	const connectRedis = async () => {
-		try {
-			await instanceRedis.connect();
-		} catch (err) {
-			handleEventConnect({
-				connectingRedis: instanceRedis
-			});
-      console.log('Redis connecting Error::',err);
-			setTimeout(() => {
-				connectRedis();
-			}, 5000);
-		}
-	};
+  handleEventConnect({
+    connectingRedis: instanceRedis,
+  });
+  const connectRedis = async () => {
+    try {
+      await instanceRedis.connect();
+    } catch (err) {
+      handleEventConnect({
+        connectingRedis: instanceRedis,
+      });
+      console.log("Redis connecting Error::", err);
+      setTimeout(() => {
+        connectRedis();
+      }, 5000);
+    }
+  };
 
-	connectRedis();
+  connectRedis();
 };
 const getRedis = () => client;
 

@@ -13,6 +13,9 @@ const { incr, getData, setData } = require('../services/redis.service');
 const apiKey = async (req, res, next) => {
 	try {
 		const key = req.headers[headers.API_KEY];
+		if (!key) {
+			throw new ForbiddenError('API Key is required');
+		}
 		const keyRedis = await getData(key);
 		if (keyRedis) {
 			req.objKey = keyRedis;

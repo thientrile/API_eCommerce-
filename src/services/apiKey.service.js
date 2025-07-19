@@ -10,7 +10,7 @@ const createCode = async (premissions = "777") => {
   return newKey.app_code;
 };
 const findByCode = async (code) => {
-
-  return findApikey({ app_code: code, app_status: true });
+  
+  return await findApikey({ app_code: code, app_status: true });
 };
 module.exports = { createCode, findByCode };

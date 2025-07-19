@@ -4,7 +4,6 @@
 
 const corsOptions=require('./utils/cors');
 const cors = require('cors');
-require('dotenv').config();
 const express = require('express');
 const app = express();
 const httpServer = require('http').createServer(app);
@@ -32,9 +31,9 @@ const initRedis = require('./db/redis.db');
 initRedis.init();
 
 // init elasticsearch
-const Elasticsearch = require('./db/elasticSearch.db');
+// const Elasticsearch = require('./db/elasticSearch.db');
 
-Elasticsearch.init();
+// Elasticsearch.init();
 // //  inint rbac
 // const { initAccessControl } = require("./middlewares/rbac.middleware");
 // (async () => {

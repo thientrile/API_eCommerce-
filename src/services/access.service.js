@@ -150,9 +150,9 @@ const login = async ({ username, password }) => {
 const signUP = async (payload) => {
 	// hash the password
 	const [passwordHash, roleId] = await Promise.all([
-		await bcrypt.hash(payload.password, 10),
-		await getId('1')
-	]);
+    await bcrypt.hash(payload.password, 10),
+    await getId("rui17218138790576"),
+  ]);
 
 	// check type username
 	payload.salt = passwordHash;

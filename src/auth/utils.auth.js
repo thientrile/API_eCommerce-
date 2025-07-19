@@ -40,7 +40,6 @@ const authertication = async (req, res, next) => {
 	try {
 		//check clientID
 		const clientId = req.headers[HEADERS.CLIENT_ID];
-		console.log('app_permission',req.permission);
 		//get accecess token
 		if (!clientId) throw new AuthFailureError('Token has expired');
 		let keyStore = (await tk_checkKeyTokenVerify(clientId))[0];

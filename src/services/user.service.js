@@ -11,14 +11,14 @@ const {
 } = require('../utils');
 
 const getUserInfoById = async (userId, id = 0) => {
-	const grants = await grantAccess(userId, 'readAny', 'Users');
+	const grants = await grantAccess(userId, 'readAny', 'profile');
 	const result = await userModel.findOne({ usr_id: id }).exec();
 	const removePreFix = removePrefixFromKeys(result.toObject(), 'usr_');
 	return filterConvert(removePreFix, grants);
 };
 
 const getUserInfo = async (userId) => {
-	const grants = await grantAccess(userId, 'readOwn', 'Users');
+	const grants = await grantAccess(userId, 'readOwn', 'profile');
 	const result = await userModel
 		.findOne({ _id: convertToObjectIdMongoose(userId) })
 		.populate('usr_role', 'rol_name')

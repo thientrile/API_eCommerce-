@@ -128,7 +128,7 @@ const editCategory = async (userId, payload) => {
  */
 const categoryList = async (userId) => {
   //check the middleware's permissions
-  await grantAccess(userId, "readAny", "Categories");
+  await grantAccess(userId, "readAny", "category");
 
   //get all category
   const category = await cateogoryModel.aggregate([

@@ -70,7 +70,6 @@ const grantAccess = async (userId, action, resourse) => {
  */
 const checkPermission = async (userId, action, resourse) => {
 	await initAccessControl();
-
 	const roleName = (await getRoleNameByUserId(userId)).usr_role.rol_slug;
 	const permission = await rbac.can(roleName)[action](resourse);
 	return permission.granted ? permission : null;

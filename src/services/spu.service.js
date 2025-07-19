@@ -208,6 +208,7 @@ class SpuService {
 		});
 	}
 	static async getListSeller(userId, status = 'all', limit = 100, page = 1) {
+		console.log(userId);
 		const permission = await checkPermission(userId, 'readOwn', 'product');
 		if (!permission) {
 			throw new ForbiddenError(

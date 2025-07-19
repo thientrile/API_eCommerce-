@@ -16,7 +16,7 @@ const devlopment = {
       user: "mongo",
       pass: "hzOyAWkWMpUUjcwiCKOdWBYSENCrgwwN",
       host: "hopper.proxy.rlwy.net:47441",
-      dataName: "shopDev",
+      dataName: "shopDev1",
       options: {
         authSource: "admin",
       },
@@ -40,12 +40,13 @@ const production = {
     version: process.env.API_VERSION || "V1",
   },
   db: {
+    // 
     mongo: {
       schema: "mongodb",
       user: "mongo",
       pass: "hzOyAWkWMpUUjcwiCKOdWBYSENCrgwwN",
       host: "hopper.proxy.rlwy.net:47441",
-      dataName: "shopDev",
+      dataName: "shopDev1",
       options: {
         authSource: "admin",
       },
